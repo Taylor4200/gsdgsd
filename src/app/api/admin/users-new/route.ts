@@ -204,9 +204,9 @@ async function getUserDetails(userId: string) {
 // Update user profile (admin action)
 export async function PATCH(request: NextRequest) {
   try {
-    const { userId, role, value } = await request.json()
+    const { userId, role, value, banDuration, banReason } = await request.json()
 
-    console.log('🔧 Updating user profile:', { userId, role, value })
+    console.log('🔧 Updating user profile:', { userId, role, value, banDuration, banReason })
 
     if (!userId || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -229,6 +229,13 @@ export async function PATCH(request: NextRequest) {
         break
       case 'is_banned':
         updateData.is_banned = value
+        // Add ban duration and reason if provided
+        if (banDuration) {
+          updateData.ban_duration = banDuration
+        }
+        if (banReason) {
+          updateData.ban_reason = banReason
+        }
         break
       default:
         return NextResponse.json({ error: 'Invalid role' }, { status: 400 })

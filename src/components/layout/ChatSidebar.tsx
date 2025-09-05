@@ -27,6 +27,7 @@ import { cn, formatTime } from '@/lib/utils'
 import { useUserStore } from '@/store/userStore'
 import type { ChatMessage } from '@/lib/chatService'
 import UserProfileModal from '@/components/chat/UserProfileModal'
+import BanModal from '@/components/modals/BanModal'
 
 interface ChatSidebarProps {
   isOpen: boolean
@@ -48,6 +49,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [showUserProfile, setShowUserProfile] = useState(false)
   const [showModMenu, setShowModMenu] = useState<string | null>(null)
+  const [showBanModal, setShowBanModal] = useState(false)
+  const [banTarget, setBanTarget] = useState<{userId: string, username: string} | null>(null)
 
   // Initialize chat when user is available
   useEffect(() => {
@@ -178,16 +181,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
       let response
       switch (action) {
         case 'ban':
-          response = await fetch('/api/admin/users-new', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              userId, 
-              role: 'is_banned', 
-              value: true 
-            })
-          })
-          break
+          // Open ban modal instead of immediate ban
+          setBanTarget({ userId, username })
+          setShowBanModal(true)
+          setShowModMenu(null)
+          return
         case 'unban':
           response = await fetch('/api/admin/users-new', {
             method: 'PATCH',
@@ -524,6 +522,46 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
           user={selectedUser}
           currentUser={user}
           chatService={null}
+        />
+      )}
+
+      {/* Ban Modal */}
+      {showBanModal && banTarget && (
+        <BanModal
+          isOpen={showBanModal}
+          onClose={() => {
+            setShowBanModal(false)
+            setBanTarget(null)
+          }}
+          targetUser={banTarget}
+          onBan={async (duration: string, reason: string) => {
+            try {
+              const response = await fetch('/api/admin/users-new', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  userId: banTarget.userId, 
+                  role: 'is_banned', 
+                  value: true,
+                  banDuration: duration,
+                  banReason: reason
+                })
+              })
+              
+              if (response.ok) {
+                setShowBanModal(false)
+                setBanTarget(null)
+                // Refresh messages
+                const messagesResponse = await fetch('/api/chat-new')
+                const data = await messagesResponse.json()
+                if (data.messages) {
+                  setMessages(data.messages)
+                }
+              }
+            } catch (error) {
+              console.error('Ban failed:', error)
+            }
+          }}
         />
       )}
     </motion.div>
