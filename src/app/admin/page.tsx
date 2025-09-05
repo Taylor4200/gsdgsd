@@ -137,11 +137,9 @@ const AdminPanel = () => {
     total_prize: '',
     start_date: '',
     end_date: '',
-    prizes: [
-      { place: 1, amount: '', percentage: '' },
-      { place: 2, amount: '', percentage: '' },
-      { place: 3, amount: '', percentage: '' }
-    ],
+    prize_pool: '',
+    top_winners: '10',
+    remaining_winners: '90',
     game_multipliers: [
       { game_id: 'general', game_name: 'All Games', multiplier: '1.00', wager_requirement: '1000', tickets_per_wager: '1' }
     ]
@@ -250,10 +248,16 @@ const AdminPanel = () => {
 
   const handleCreateRaffle = async () => {
     try {
+      const prizes = calculatePrizeDistribution()
+      const raffleData = {
+        ...raffleFormData,
+        prizes: prizes
+      }
+
       const response = await fetch('/api/raffles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(raffleFormData)
+        body: JSON.stringify(raffleData)
       })
 
       if (response.ok) {
@@ -270,13 +274,17 @@ const AdminPanel = () => {
     if (!editingRaffle) return
 
     try {
+      const prizes = calculatePrizeDistribution()
+      const raffleData = {
+        raffle_id: editingRaffle.id,
+        ...raffleFormData,
+        prizes: prizes
+      }
+
       const response = await fetch('/api/raffles', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          raffle_id: editingRaffle.id,
-          ...raffleFormData
-        })
+        body: JSON.stringify(raffleData)
       })
 
       if (response.ok) {
@@ -332,11 +340,9 @@ const AdminPanel = () => {
       total_prize: '',
       start_date: '',
       end_date: '',
-      prizes: [
-        { place: 1, amount: '', percentage: '' },
-        { place: 2, amount: '', percentage: '' },
-        { place: 3, amount: '', percentage: '' }
-      ],
+      prize_pool: '',
+      top_winners: '10',
+      remaining_winners: '90',
       game_multipliers: [
         { game_id: 'general', game_name: 'All Games', multiplier: '1.00', wager_requirement: '1000', tickets_per_wager: '1' }
       ]
@@ -350,11 +356,9 @@ const AdminPanel = () => {
       total_prize: raffle.total_prize.toString(),
       start_date: raffle.start_date.split('T')[0],
       end_date: raffle.end_date.split('T')[0],
-      prizes: raffle.raffle_prizes.map(prize => ({
-        place: prize.place,
-        amount: prize.amount.toString(),
-        percentage: prize.percentage.toString()
-      })),
+      prize_pool: raffle.total_prize.toString(),
+      top_winners: '10',
+      remaining_winners: '90',
       game_multipliers: raffle.raffle_game_multipliers.map(mult => ({
         game_id: mult.game_id,
         game_name: mult.game_name,
@@ -363,20 +367,6 @@ const AdminPanel = () => {
         tickets_per_wager: mult.tickets_per_wager.toString()
       }))
     })
-  }
-
-  const addPrize = () => {
-    setRaffleFormData(prev => ({
-      ...prev,
-      prizes: [...prev.prizes, { place: prev.prizes.length + 1, amount: '', percentage: '' }]
-    }))
-  }
-
-  const removePrize = (index: number) => {
-    setRaffleFormData(prev => ({
-      ...prev,
-      prizes: prev.prizes.filter((_, i) => i !== index)
-    }))
   }
 
   const addGameMultiplier = () => {
@@ -406,6 +396,45 @@ const AdminPanel = () => {
         i === index ? { ...mult, [field]: value } : mult
       )
     }))
+  }
+
+  const calculatePrizeDistribution = () => {
+    const prizePool = parseFloat(raffleFormData.prize_pool) || 0
+    const topWinners = parseInt(raffleFormData.top_winners) || 0
+    const remainingWinners = parseInt(raffleFormData.remaining_winners) || 0
+    
+    if (prizePool === 0 || topWinners === 0) return []
+
+    const prizes = []
+    
+    // Top winners get decreasing amounts (1st gets most, 2nd gets less, etc.)
+    const topPrizeTotal = prizePool * 0.6 // Top winners get 60% of pool
+    const remainingPrizeTotal = prizePool * 0.4 // Remaining winners get 40% of pool
+    
+    // Calculate top prizes (decreasing amounts)
+    for (let i = 1; i <= topWinners; i++) {
+      const percentage = (topWinners - i + 1) / (topWinners * (topWinners + 1) / 2) // Decreasing distribution
+      const amount = topPrizeTotal * percentage
+      prizes.push({
+        place: i,
+        amount: Math.round(amount),
+        percentage: Math.round((amount / prizePool) * 100 * 100) / 100
+      })
+    }
+    
+    // Remaining winners get equal amounts
+    if (remainingWinners > 0) {
+      const equalAmount = remainingPrizeTotal / remainingWinners
+      for (let i = topWinners + 1; i <= topWinners + remainingWinners; i++) {
+        prizes.push({
+          place: i,
+          amount: Math.round(equalAmount),
+          percentage: Math.round((equalAmount / prizePool) * 100 * 100) / 100
+        })
+      }
+    }
+    
+    return prizes
   }
 
   const fetchAdminData = async () => {
@@ -930,14 +959,43 @@ const AdminPanel = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Total Prize ($)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Prize Pool ($)</label>
                 <input
                   type="number"
-                  value={raffleFormData.total_prize}
-                  onChange={(e) => setRaffleFormData(prev => ({ ...prev, total_prize: e.target.value }))}
+                  value={raffleFormData.prize_pool}
+                  onChange={(e) => {
+                    const prizePool = e.target.value
+                    setRaffleFormData(prev => ({ 
+                      ...prev, 
+                      prize_pool: prizePool,
+                      total_prize: prizePool // Auto-set total prize from pool
+                    }))
+                  }}
                   className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
                   placeholder="100000"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Top Winners</label>
+                <input
+                  type="number"
+                  value={raffleFormData.top_winners}
+                  onChange={(e) => setRaffleFormData(prev => ({ ...prev, top_winners: e.target.value }))}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                  placeholder="10"
+                />
+                <p className="text-xs text-gray-500 mt-1">Top winners get decreasing amounts (1st gets most)</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Remaining Winners</label>
+                <input
+                  type="number"
+                  value={raffleFormData.remaining_winners}
+                  onChange={(e) => setRaffleFormData(prev => ({ ...prev, remaining_winners: e.target.value }))}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                  placeholder="90"
+                />
+                <p className="text-xs text-gray-500 mt-1">Remaining winners get equal amounts</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
@@ -959,63 +1017,45 @@ const AdminPanel = () => {
               </div>
             </div>
 
-            {/* Prizes Section */}
+            {/* Auto-calculated Prize Preview */}
             <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Prizes</h3>
-                <Button
-                  onClick={addPrize}
-                  variant="outline"
-                  size="sm"
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Prize
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {raffleFormData.prizes.map((prize, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <input
-                      value={prize.place}
-                      onChange={(e) => {
-                        const newPrizes = [...raffleFormData.prizes]
-                        newPrizes[index].place = parseInt(e.target.value) || 0
-                        setRaffleFormData(prev => ({ ...prev, prizes: newPrizes }))
-                      }}
-                      className="w-20 bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
-                      placeholder="Place"
-                    />
-                    <input
-                      value={prize.amount}
-                      onChange={(e) => {
-                        const newPrizes = [...raffleFormData.prizes]
-                        newPrizes[index].amount = e.target.value
-                        setRaffleFormData(prev => ({ ...prev, prizes: newPrizes }))
-                      }}
-                      className="flex-1 bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
-                      placeholder="Amount ($)"
-                    />
-                    <input
-                      value={prize.percentage}
-                      onChange={(e) => {
-                        const newPrizes = [...raffleFormData.prizes]
-                        newPrizes[index].percentage = e.target.value
-                        setRaffleFormData(prev => ({ ...prev, prizes: newPrizes }))
-                      }}
-                      className="w-24 bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
-                      placeholder="%"
-                    />
-                    <Button
-                      onClick={() => removePrize(index)}
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Prize Distribution Preview</h3>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Top Winners (60% of pool)</h4>
+                    <div className="space-y-1 text-sm">
+                      {calculatePrizeDistribution().slice(0, parseInt(raffleFormData.top_winners) || 0).map((prize, index) => (
+                        <div key={index} className="flex justify-between">
+                          <span>#{prize.place}:</span>
+                          <span className="font-medium">${prize.amount.toLocaleString()} ({prize.percentage}%)</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Remaining Winners (40% of pool)</h4>
+                    <div className="space-y-1 text-sm">
+                      {parseInt(raffleFormData.remaining_winners) > 0 && (
+                        <>
+                          <div className="flex justify-between">
+                            <span>#{parseInt(raffleFormData.top_winners) + 1} - #{parseInt(raffleFormData.top_winners) + parseInt(raffleFormData.remaining_winners)}:</span>
+                            <span className="font-medium">${calculatePrizeDistribution()[parseInt(raffleFormData.top_winners)]?.amount.toLocaleString() || '0'} each</span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Total: {parseInt(raffleFormData.remaining_winners)} winners × ${calculatePrizeDistribution()[parseInt(raffleFormData.top_winners)]?.amount.toLocaleString() || '0'} = ${((calculatePrizeDistribution()[parseInt(raffleFormData.top_winners)]?.amount || 0) * parseInt(raffleFormData.remaining_winners)).toLocaleString()}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex justify-between font-semibold">
+                    <span>Total Prize Pool:</span>
+                    <span>${raffleFormData.prize_pool ? parseFloat(raffleFormData.prize_pool).toLocaleString() : '0'}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
