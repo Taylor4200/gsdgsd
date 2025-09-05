@@ -271,20 +271,21 @@ export async function PATCH(request: NextRequest) {
 
     console.log('📝 Update data:', updateData)
 
-    if (existingUser && existingUser.length > 0) {
-      // Update existing user
-      console.log('✅ User exists, updating...')
-      const { error: updateError } = await supabase
-        .from('chat_messages')
-        .update(updateData)
-        .eq('user_id', userId)
+    // Always update ALL records for this user to ensure consistency
+    console.log('✅ Updating ALL user records...')
+    const { error: updateError } = await supabase
+      .from('chat_messages')
+      .update(updateData)
+      .eq('user_id', userId)
 
-      if (updateError) {
-        console.error('❌ Error updating user:', updateError)
-        return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
-      }
-      console.log('✅ User updated successfully')
-    } else {
+    if (updateError) {
+      console.error('❌ Error updating user:', updateError)
+      return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
+    }
+    console.log('✅ All user records updated successfully')
+
+    // If no existing records, create one
+    if (!existingUser || existingUser.length === 0) {
       // Create new user entry for vietnamdong specifically
       console.log('🆕 User does not exist, creating...')
       const username = userId === 'b4af95cd-53de-47f1-9274-87266269c39b' ? 'vietnamdong' : 'New User'

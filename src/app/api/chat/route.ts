@@ -114,6 +114,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 })
     }
 
+    // Get user's current roles from their latest message to preserve admin changes
+    const { data: latestUserData } = await supabase
+      .from('chat_messages')
+      .select('level, is_vip, is_mod')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    // Use existing roles if found, otherwise use provided values
+    const currentLevel = latestUserData?.[0]?.level || level
+    const currentIsVip = latestUserData?.[0]?.is_vip || isVip
+    const currentIsMod = latestUserData?.[0]?.is_mod || isMod
+
     // Check if user is banned
     const { data: banCheck } = await supabase
       .from('chat_bans')
@@ -126,16 +139,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User is banned from chat' }, { status: 403 })
     }
 
-    // Insert message
+    // Insert message with preserved roles
     const { data: newMessage, error } = await supabase
       .from('chat_messages')
       .insert({
         user_id: userId,
         username,
         message: message.trim(),
-        level,
-        is_vip: isVip,
-        is_mod: isMod,
+        level: currentLevel,
+        is_vip: currentIsVip,
+        is_mod: currentIsMod,
         is_banned: false
       })
       .select(`
