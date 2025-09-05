@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user profiles for all message senders to get current roles
-    const userIds = [...new Set(messages?.map(m => m.user_id) || [])]
+    const userIds = Array.from(new Set(messages?.map(m => m.user_id) || []))
     const { data: profiles } = await supabase
       .from('user_profiles')
       .select('user_id, is_mod, is_vip, level')
