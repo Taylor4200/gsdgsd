@@ -1080,30 +1080,30 @@ const AdminPanel = () => {
 
             {/* Auto-calculated Prize Preview */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Prize Distribution Preview</h3>
+              <h3 className="text-lg font-semibold text-black mb-4">Prize Distribution Preview</h3>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Top Winners ({raffleFormData.top_winners_percentage}% of pool)</h4>
+                    <h4 className="font-medium text-black mb-2">Top Winners ({raffleFormData.top_winners_percentage}% of pool)</h4>
                     <div className="space-y-1 text-sm">
                       {calculatePrizeDistribution().slice(0, parseInt(raffleFormData.top_winners) || 0).map((prize, index) => (
                         <div key={index} className="flex justify-between">
-                          <span>#{prize.place}:</span>
-                          <span className="font-medium">${prize.amount.toLocaleString()} ({prize.percentage}%)</span>
+                          <span className="text-black">#{prize.place}:</span>
+                          <span className="font-medium text-black">${prize.amount.toLocaleString()} ({prize.percentage}%)</span>
                         </div>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Remaining Winners ({raffleFormData.remaining_winners_percentage}% of pool)</h4>
+                    <h4 className="font-medium text-black mb-2">Remaining Winners ({raffleFormData.remaining_winners_percentage}% of pool)</h4>
                     <div className="space-y-1 text-sm">
                       {parseInt(raffleFormData.remaining_winners) > 0 && (
                         <>
                           <div className="flex justify-between">
-                            <span>#{parseInt(raffleFormData.top_winners) + 1} - #{parseInt(raffleFormData.top_winners) + parseInt(raffleFormData.remaining_winners)}:</span>
-                            <span className="font-medium">${calculatePrizeDistribution()[parseInt(raffleFormData.top_winners)]?.amount.toLocaleString() || '0'} each</span>
+                            <span className="text-black">#{parseInt(raffleFormData.top_winners) + 1} - #{parseInt(raffleFormData.top_winners) + parseInt(raffleFormData.remaining_winners)}:</span>
+                            <span className="font-medium text-black">${calculatePrizeDistribution()[parseInt(raffleFormData.top_winners)]?.amount.toLocaleString() || '0'} each</span>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-black">
                             Total: {parseInt(raffleFormData.remaining_winners)} winners × ${calculatePrizeDistribution()[parseInt(raffleFormData.top_winners)]?.amount.toLocaleString() || '0'} = ${((calculatePrizeDistribution()[parseInt(raffleFormData.top_winners)]?.amount || 0) * parseInt(raffleFormData.remaining_winners)).toLocaleString()}
                           </div>
                         </>
@@ -1113,8 +1113,8 @@ const AdminPanel = () => {
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex justify-between font-semibold">
-                    <span>Total Prize Pool:</span>
-                    <span>${raffleFormData.prize_pool ? parseFloat(raffleFormData.prize_pool).toLocaleString() : '0'}</span>
+                    <span className="text-black">Total Prize Pool:</span>
+                    <span className="text-black">${raffleFormData.prize_pool ? parseFloat(raffleFormData.prize_pool).toLocaleString() : '0'}</span>
                   </div>
                 </div>
               </div>
