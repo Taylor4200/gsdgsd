@@ -38,7 +38,7 @@ interface UserProfileModalProps {
     is_mod: boolean
     is_admin?: boolean
   }
-  chatService: ChatService
+  chatService: ChatService | null
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ 
@@ -72,15 +72,15 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     setIsLoading(true)
     try {
       // Always load user stats for everyone
-      const stats = await chatService.getUserStats(user.id)
+      const stats = chatService ? await chatService.getUserStats(user.id) : null
       console.log('Loaded user stats:', stats) // Debug log
       setUserStats(stats)
       
       // Only load admin-specific data if user is admin
       if (isAdmin) {
         const [messages, bans] = await Promise.all([
-          chatService.getUserMessageHistory(user.id, 50),
-          chatService.getBanHistory(user.id)
+          chatService ? chatService.getUserMessageHistory(user.id, 50) : Promise.resolve([]),
+          chatService ? chatService.getBanHistory(user.id) : Promise.resolve([])
         ])
         
         setMessageHistory(messages)
@@ -118,7 +118,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
         }
       }
 
-      const success = await chatService.banUser(user.id, currentUser.id, banReason, expiresAt)
+      const success = chatService ? await chatService.banUser(user.id, currentUser.id, banReason, expiresAt) : false
       
       if (success) {
         setBanReason('')
@@ -137,7 +137,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const handleUnbanUser = async () => {
     setIsUnbanning(true)
     try {
-      const success = await chatService.unbanUser(user.id)
+      const success = chatService ? await chatService.unbanUser(user.id) : false
       
       if (success) {
         await loadUserData() // Refresh data
@@ -155,7 +155,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const handleDeleteMessage = async (messageId: string) => {
     setIsDeletingMessage(messageId)
     try {
-      const success = await chatService.deleteMessage(messageId)
+      const success = chatService ? await chatService.deleteMessage(messageId) : false
       
       if (success) {
         setMessageHistory(prev => prev.filter(msg => msg.id !== messageId))

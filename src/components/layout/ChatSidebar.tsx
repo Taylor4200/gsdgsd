@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { cn, formatTime } from '@/lib/utils'
 import { useUserStore } from '@/store/userStore'
-import { ChatService } from '@/lib/chatService'
 import type { ChatMessage } from '@/lib/chatService'
 import UserProfileModal from '@/components/chat/UserProfileModal'
 
@@ -42,47 +41,63 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const chatServiceRef = useRef<any>(null)
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [showUserProfile, setShowUserProfile] = useState(false)
 
-  // Initialize chat service when user is available
+  // Initialize chat when user is available
   useEffect(() => {
     if (user && user.id) {
-      const chatService = ChatService.getInstance()
-      chatServiceRef.current = chatService
-
-      // Set up message callback
-      chatService.subscribeToMessages((message: ChatMessage) => {
-        setMessages(prev => [...prev, message])
+      // Update presence via API
+      fetch('/api/chat-new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'update-presence', 
+          userId: user.id, 
+          username: user.username || 'Anonymous' 
+        })
       })
 
-      // Update presence
-      chatService.updatePresence(user.id, user.username || 'Anonymous')
+      // Load recent messages via API
+      fetch('/api/chat-new')
+        .then(res => res.json())
+        .then(data => {
+          if (data.messages) {
+            setMessages(data.messages)
+            setIsConnected(true)
+          }
+          setIsLoading(false)
+        })
+        .catch((err) => {
+          console.error('Failed to load messages:', err)
+          setError('Failed to load messages')
+          setIsLoading(false)
+        })
 
-      // Load recent messages
-      chatService.getRecentMessages(50).then((recentMessages) => {
-        setMessages(recentMessages)
-        setIsConnected(true)
-        setIsLoading(false)
-      }).catch((err) => {
-        console.error('Failed to load messages:', err)
-        setError('Failed to load messages')
-        setIsLoading(false)
-      })
+      // Get initial online count via API
+      fetch('/api/chat-new?action=online-count')
+        .then(res => res.json())
+        .then(data => {
+          if (data.count !== undefined) {
+            setOnlineCount(data.count)
+          }
+        })
+        .catch(err => console.error('Failed to get online count:', err))
 
-      // Get initial online count
-      chatService.getOnlineUsersCount().then((count) => {
-        setOnlineCount(count)
-      })
-    }
+      // Set up polling for new messages (since we removed real-time)
+      const pollInterval = setInterval(() => {
+        fetch('/api/chat-new')
+          .then(res => res.json())
+          .then(data => {
+            if (data.messages && data.messages.length > messages.length) {
+              setMessages(data.messages)
+            }
+          })
+          .catch(err => console.error('Polling error:', err))
+      }, 3000) // Poll every 3 seconds
 
-    return () => {
-      if (chatServiceRef.current) {
-        chatServiceRef.current.unsubscribeFromMessages()
-        if (user?.id) {
-          chatServiceRef.current.markOffline(user.id)
-        }
+      return () => {
+        clearInterval(pollInterval)
       }
     }
   }, [user])
@@ -96,21 +111,35 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   }, [messages])
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !chatServiceRef.current || !isConnected || !user) return
+    if (!newMessage.trim() || !isConnected || !user) return
 
     const messageText = newMessage.trim()
     setNewMessage('')
 
-    const result = await chatServiceRef.current.sendMessage(
-      messageText, 
-      user.username || 'Anonymous', 
-      user.id
-    )
-    
-    if (!result) {
+    try {
+      const response = await fetch('/api/chat-new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: messageText, 
+          userId: user.id, 
+          username: user.username || 'Anonymous' 
+        })
+      })
+
+      const result = await response.json()
+      
+      if (!response.ok || result.error) {
+        setError('Failed to send message')
+        setNewMessage(messageText) // Restore message on error
+      } else if (result.message) {
+        // Add the new message to the list immediately
+        setMessages(prev => [...prev, result.message])
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
       setError('Failed to send message')
-      // Restore message on error
-      setNewMessage(messageText)
+      setNewMessage(messageText) // Restore message on error
     }
   }
 
@@ -320,7 +349,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
           }}
           user={selectedUser}
           currentUser={user}
-          chatService={chatServiceRef.current}
+          chatService={null}
         />
       )}
     </motion.div>
