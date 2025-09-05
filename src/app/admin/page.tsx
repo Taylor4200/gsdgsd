@@ -1057,22 +1057,24 @@ const AdminPanel = () => {
                 <p className="text-xs text-gray-500 mt-1">Percentage of pool for remaining winners</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date & Time</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={raffleFormData.start_date}
                   onChange={(e) => setRaffleFormData(prev => ({ ...prev, start_date: e.target.value }))}
                   className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
                 />
+                <p className="text-xs text-gray-500 mt-1">When the raffle becomes active</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">End Date & Time</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={raffleFormData.end_date}
                   onChange={(e) => setRaffleFormData(prev => ({ ...prev, end_date: e.target.value }))}
                   className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
                 />
+                <p className="text-xs text-gray-500 mt-1">When the raffle ends and winners are drawn</p>
               </div>
             </div>
 

@@ -76,8 +76,9 @@ const CasinoHome: React.FC = () => {
       const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24))
       const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
       const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
       
-      setTimeLeft(`${days}d ${hours}h ${minutes}m`)
+      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`)
     } else {
       setTimeLeft('Ended')
     }
@@ -193,7 +194,7 @@ const CasinoHome: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="bg-black/30 backdrop-blur-sm rounded-xl p-4 border border-[#00d4ff]/20">
                           <div className="text-[#00d4ff] text-xs font-semibold mb-1">Time Left</div>
-                          <div className="text-xl font-bold text-white">{timeLeft || '4d 21h'}</div>
+                          <div className="text-xl font-bold text-white">{timeLeft || '4d 21h 26m 30s'}</div>
                         </div>
                         <div className="bg-black/30 backdrop-blur-sm rounded-xl p-4 border border-[#00d4ff]/20">
                           <div className="text-[#00d4ff] text-xs font-semibold mb-1">Your Tickets</div>
@@ -288,7 +289,7 @@ const CasinoHome: React.FC = () => {
                             <div className="text-[#00d4ff] text-sm font-semibold mb-3">
                               Time Remaining
                             </div>
-                            <div className="text-4xl font-bold text-white mb-2">{timeLeft || '4d 21h 26m'}</div>
+                            <div className="text-4xl font-bold text-white mb-2">{timeLeft || '4d 21h 26m 30s'}</div>
                             <div className="text-sm text-gray-400">
                               {raffle ? `Raffle ends ${new Date(raffle.end_date).toLocaleDateString()}` : 'Raffle ends Sunday at 11:59 PM EST'}
                             </div>
