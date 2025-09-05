@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Count messages for each user
     const usersWithCounts = []
-    for (const [userId, userData] of uniqueUsers) {
+    for (const [userId, userData] of Array.from(uniqueUsers.entries())) {
       const { data: messageCount } = await supabase
         .from('chat_messages')
         .select('id', { count: 'exact', head: true })
