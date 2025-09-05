@@ -78,7 +78,7 @@ const CasinoHome: React.FC = () => {
       const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
       const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
       
-      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`)
+      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds.toString().padStart(2, '0')}s`)
     } else {
       setTimeLeft('Ended')
     }
