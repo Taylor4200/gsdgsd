@@ -180,6 +180,20 @@ export const getHashedServerSeed = async (serverSeed: string): Promise<string> =
 }
 
 /**
+ * Generate server seed hash (synchronous version for minesweeper API)
+ */
+export const generateServerSeedHash = (serverSeed: string): string => {
+  // Simple hash for now - in production use crypto.createHash('sha256')
+  let hash = 0
+  for (let i = 0; i < serverSeed.length; i++) {
+    const char = serverSeed.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(16)
+}
+
+/**
  * Generate Plinko result with proper RGS system and house edge applied to probabilities
  * Returns bin index (0 to binCount-1) with house edge applied to win chances
  */

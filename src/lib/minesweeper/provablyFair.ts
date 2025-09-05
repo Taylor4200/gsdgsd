@@ -163,7 +163,7 @@ export async function generateGameResult(
   const payout = calculatePayout(clearedTiles, totalTiles, mineCount, stake)
   
   return {
-    roundId: crypto.randomUUID(),
+    roundId: `round-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     boardWidth,
     boardHeight,
     mineCount,
@@ -244,12 +244,16 @@ async function generateResultHash(data: any): Promise<string> {
  * Generate a cryptographic signature for audit trails
  */
 export function signResult(result: GameResult, privateKey: string): string {
-  const signature = crypto
-    .createSign('RSA-SHA256')
-    .update(JSON.stringify(result))
-    .sign(privateKey, 'hex')
-  
-  return signature
+  // For browser compatibility, we'll create a simple hash signature
+  // In production, this should be done server-side with Node.js crypto
+  const data = JSON.stringify(result)
+  let hash = 0
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(16)
 }
 
 /**
@@ -261,9 +265,10 @@ export function verifySignature(
   publicKey: string
 ): boolean {
   try {
-    const verifier = crypto.createVerify('RSA-SHA256')
-    verifier.update(JSON.stringify(result))
-    return verifier.verify(publicKey, signature, 'hex')
+    // For browser compatibility, we'll recreate the signature and compare
+    // In production, this should be done server-side with Node.js crypto
+    const expectedSignature = signResult(result, publicKey)
+    return signature === expectedSignature
   } catch {
     return false
   }

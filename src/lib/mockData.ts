@@ -15,7 +15,10 @@ export const mockUser: User = {
   lastActive: new Date(),
   achievements: [],
   referralCode: 'CRYPTO123',
-  isGhostMode: false
+  isGhostMode: false,
+  is_mod: false,
+  is_admin: false,
+  emailConfirmed: true
 }
 
 // Function to simulate login

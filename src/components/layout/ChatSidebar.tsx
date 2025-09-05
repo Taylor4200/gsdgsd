@@ -311,7 +311,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
       )}
 
       {/* User Profile Modal */}
-      {selectedUser && (
+      {selectedUser && user && (
         <UserProfileModal
           isOpen={showUserProfile}
           onClose={() => {

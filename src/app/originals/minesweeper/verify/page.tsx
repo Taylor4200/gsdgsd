@@ -66,7 +66,7 @@ const VerificationPage: React.FC = () => {
       }
 
       // Perform verification
-      const result = verifyGameResult(
+      const result = await verifyGameResult(
         serverSeed,
         clientSeed,
         nonceNum,

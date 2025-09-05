@@ -116,16 +116,20 @@ const EdgeBaccarat: React.FC = () => {
 
   // Initialize session
   useEffect(() => {
-    const newServerSeed = generateServerSeed()
-    const newClientSeed = generateClientSeed()
-    const hashedServerSeed = getHashedServerSeed(newServerSeed)
+    const initSession = async () => {
+      const newServerSeed = generateServerSeed()
+      const newClientSeed = generateClientSeed()
+      const hashedServerSeed = await getHashedServerSeed(newServerSeed)
 
-    setSession({
-      serverSeed: newServerSeed,
-      hashedServerSeed,
-      clientSeed: newClientSeed,
-      nonce: 0
-    })
+      setSession({
+        serverSeed: newServerSeed,
+        hashedServerSeed,
+        clientSeed: newClientSeed,
+        nonce: 0
+      })
+    }
+    
+    initSession()
   }, [])
 
   // Create a deck of cards
@@ -399,11 +403,13 @@ const EdgeBaccarat: React.FC = () => {
       }
 
       // Add to game stats
+      const resultValue = winner === 'player' ? 1 : winner === 'banker' ? 2 : 3
+      const targetValue = betType === 'player' ? 1 : betType === 'banker' ? 2 : 3
       addRoll({
-        result: winner,
+        result: resultValue,
         won: payout > 0,
-        target: betType,
-        direction: 'none',
+        target: targetValue,
+        direction: 'under', // Default value since baccarat doesn't use direction
         betAmount,
         payout,
         timestamp: new Date(),

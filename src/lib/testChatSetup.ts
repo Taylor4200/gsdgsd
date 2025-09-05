@@ -88,7 +88,7 @@ export async function testChatSetup() {
 // Run the test if this file is executed directly
 if (typeof window !== 'undefined') {
   // Browser environment
-  window.testChatSetup = testChatSetup
+  ;(window as any).testChatSetup = testChatSetup
 } else {
   // Node environment
   testChatSetup()

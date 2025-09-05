@@ -1,5 +1,5 @@
 /**
- * Chat API Routes
+ * Chat Messages API Routes
  * 
  * Real-time chat functionality using Supabase
  */
@@ -8,12 +8,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 /**
- * GET /api/chat/messages
- * Get recent chat messages
+ * GET /api/chat - Get recent chat messages
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
+    const action = searchParams.get('action')
+    
+    if (action === 'presence') {
+      // Get online users count
+      const { data: count, error } = await supabase.rpc('get_online_users_count')
+
+      if (error) {
+        console.error('Error fetching online count:', error)
+        return NextResponse.json({ error: 'Failed to fetch online count' }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        onlineCount: count || 0
+      })
+    }
+
+    // Default: Get messages
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
@@ -46,18 +63,42 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in GET /api/chat/messages:', error)
+    console.error('Error in GET /api/chat:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 /**
- * POST /api/chat/messages
- * Send a new chat message
+ * POST /api/chat - Send message or update presence
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const { action } = body
+
+    if (action === 'presence') {
+      // Update user presence
+      const { userId, username, isOnline = true } = body
+
+      if (!userId || !username) {
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      }
+
+      if (isOnline) {
+        await supabase.rpc('update_user_presence', {
+          p_user_id: userId,
+          p_username: username
+        })
+      } else {
+        await supabase.rpc('mark_user_offline', {
+          p_user_id: userId
+        })
+      }
+
+      return NextResponse.json({ success: true })
+    }
+
+    // Default: Send message
     const { message, userId, username, level = 1, isVip = false, isMod = false } = body
 
     // Validate input
@@ -127,107 +168,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in POST /api/chat/messages:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-/**
- * GET /api/chat/presence
- * Get online users count
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { data: count, error } = await supabase.rpc('get_online_users_count')
-
-    if (error) {
-      console.error('Error fetching online count:', error)
-      return NextResponse.json({ error: 'Failed to fetch online count' }, { status: 500 })
-    }
-
-    return NextResponse.json({
-      success: true,
-      onlineCount: count || 0
-    })
-
-  } catch (error) {
-    console.error('Error in GET /api/chat/presence:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-/**
- * POST /api/chat/presence
- * Update user presence
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { userId, username, isOnline = true } = body
-
-    if (!userId || !username) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
-
-    if (isOnline) {
-      await supabase.rpc('update_user_presence', {
-        p_user_id: userId,
-        p_username: username
-      })
-    } else {
-      await supabase.rpc('mark_user_offline', {
-        p_user_id: userId
-      })
-    }
-
-    return NextResponse.json({ success: true })
-
-  } catch (error) {
-    console.error('Error in POST /api/chat/presence:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-/**
- * DELETE /api/chat/messages/[id]
- * Delete a message (mod only)
- */
-export async function DELETE(request: NextRequest) {
-  try {
-    const url = new URL(request.url)
-    const messageId = url.pathname.split('/').pop()
-
-    if (!messageId) {
-      return NextResponse.json({ error: 'Message ID required' }, { status: 400 })
-    }
-
-    // Get the message to check if user is mod
-    const { data: message, error: fetchError } = await supabase
-      .from('chat_messages')
-      .select('user_id, is_mod')
-      .eq('id', messageId)
-      .single()
-
-    if (fetchError) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 })
-    }
-
-    // For now, allow any authenticated user to delete their own messages
-    // In production, you'd check if the user is a mod or the message owner
-    const { error: deleteError } = await supabase
-      .from('chat_messages')
-      .delete()
-      .eq('id', messageId)
-
-    if (deleteError) {
-      console.error('Error deleting message:', deleteError)
-      return NextResponse.json({ error: 'Failed to delete message' }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true })
-
-  } catch (error) {
-    console.error('Error in DELETE /api/chat/messages:', error)
+    console.error('Error in POST /api/chat:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

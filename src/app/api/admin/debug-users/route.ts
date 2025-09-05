@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Test 4: Check what tables exist by trying common ones
     const tablesToCheck = ['users', 'user_profiles', 'auth_users', 'public_users']
-    const tableResults = {}
+    const tableResults: Record<string, any> = {}
 
     for (const table of tablesToCheck) {
       try {
@@ -42,7 +42,8 @@ export async function GET(request: NextRequest) {
           .limit(1)
         tableResults[table] = { data, error }
       } catch (e) {
-        tableResults[table] = { error: e.message }
+        const errorMessage = e instanceof Error ? e.message : 'Unknown error'
+        tableResults[table] = { error: errorMessage }
       }
     }
 
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Debug error:', error)
-    return NextResponse.json({ error: 'Debug failed', details: error.message }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: 'Debug failed', details: errorMessage }, { status: 500 })
   }
 }

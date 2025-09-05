@@ -19,6 +19,8 @@ export interface User {
   referredBy?: string
   isGhostMode: boolean
   role?: 'user' | 'admin' | 'moderator'
+  is_mod: boolean // Whether user is a moderator
+  is_admin?: boolean // Whether user is an admin
   country?: string // Country for compliance and skill testing
   state?: string // State/Province for compliance
   dateOfBirth?: string // Date of birth for age verification

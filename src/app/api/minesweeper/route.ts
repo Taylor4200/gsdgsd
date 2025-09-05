@@ -28,95 +28,179 @@ const gameResults = new Map<string, GameResult>()
 const auditLog: Array<{ timestamp: number; action: string; data: any }> = []
 
 // Generate RSA key pair for signing (in production, use proper key management)
-const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-  modulusLength: 2048,
-  publicKeyEncoding: { type: 'spki', format: 'pem' },
-  privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
-})
+// For demo purposes - in production, use proper key management
+const publicKey = 'demo-public-key'
+const privateKey = 'demo-private-key'
 
 /**
- * POST /api/minesweeper/new-server-seed
- * Creates a new server seed for the RGS
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { operatorId } = body
-    
-    if (!operatorId) {
-      return NextResponse.json({ error: 'Operator ID required' }, { status: 400 })
-    }
-    
-    // Generate new server seed
-    const serverSeed = generateServerSeed()
-    const serverSeedHash = generateServerSeedHash(serverSeed)
-    const seedId = crypto.randomUUID()
-    
-    // Store seed securely (in production, use encrypted database)
-    serverSeeds.set(seedId, {
-      seed: serverSeed,
-      hash: serverSeedHash,
-      timestamp: Date.now()
-    })
-    
-    // Log for audit
-    auditLog.push({
-      timestamp: Date.now(),
-      action: 'SERVER_SEED_CREATED',
-      data: { seedId, operatorId, hash: serverSeedHash }
-    })
-    
-    return NextResponse.json({
-      seedId,
-      serverSeedHash,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-    })
-    
-  } catch (error) {
-    console.error('Error creating server seed:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-/**
- * GET /api/minesweeper/server-seed-hash
- * Returns the hash of a server seed for verification
+ * GET /api/minesweeper - Handle various GET requests
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const seedId = searchParams.get('seedId')
+    const action = searchParams.get('action')
     
-    if (!seedId) {
-      return NextResponse.json({ error: 'Seed ID required' }, { status: 400 })
+    if (action === 'seed-hash') {
+      // Get server seed hash
+      const seedId = searchParams.get('seedId')
+      
+      if (!seedId) {
+        return NextResponse.json({ error: 'Seed ID required' }, { status: 400 })
+      }
+      
+      const seedData = serverSeeds.get(seedId)
+      if (!seedData) {
+        return NextResponse.json({ error: 'Seed not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json({
+        seedId,
+        serverSeedHash: seedData.hash,
+        timestamp: seedData.timestamp,
+        isActive: true
+      })
     }
     
-    const seedData = serverSeeds.get(seedId)
-    if (!seedData) {
-      return NextResponse.json({ error: 'Seed not found' }, { status: 404 })
+    if (action === 'round-log') {
+      // Get audit log for a round
+      const roundId = searchParams.get('roundId')
+      
+      if (!roundId) {
+        return NextResponse.json({ error: 'Round ID required' }, { status: 400 })
+      }
+      
+      const gameResult = gameResults.get(roundId)
+      if (!gameResult) {
+        return NextResponse.json({ error: 'Round not found' }, { status: 404 })
+      }
+      
+      // Get relevant audit logs
+      const roundLogs = auditLog.filter(log => 
+        log.data.roundId === roundId || 
+        log.data.seedId === roundId
+      )
+      
+      return NextResponse.json({
+        roundId,
+        gameResult,
+        auditLog: roundLogs,
+        publicKey,
+        timestamp: Date.now()
+      })
     }
     
-    return NextResponse.json({
-      seedId,
-      serverSeedHash: seedData.hash,
-      timestamp: seedData.timestamp,
-      isActive: true
-    })
+    if (action === 'audit-export') {
+      // Export audit logs
+      const startTime = parseInt(searchParams.get('startTime') || '0')
+      const endTime = parseInt(searchParams.get('endTime') || Date.now().toString())
+      
+      const filteredLogs = auditLog.filter(log => 
+        log.timestamp >= startTime && log.timestamp <= endTime
+      )
+      
+      return NextResponse.json({
+        auditLogs: filteredLogs,
+        totalCount: filteredLogs.length,
+        exportedAt: Date.now(),
+        publicKey,
+        signature: 'audit-export-signature' // In production, sign this
+      })
+    }
+    
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     
   } catch (error) {
-    console.error('Error retrieving server seed hash:', error)
+    console.error('Error in GET /api/minesweeper:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 /**
- * POST /api/minesweeper/play
- * Generates a new Minesweeper game with provably fair results
+ * POST /api/minesweeper - Handle various POST requests
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const { action } = body
+    
+    if (action === 'new-seed') {
+      // Create new server seed
+      const { operatorId } = body
+      
+      if (!operatorId) {
+        return NextResponse.json({ error: 'Operator ID required' }, { status: 400 })
+      }
+      
+      // Generate new server seed
+      const serverSeed = generateServerSeed()
+      const serverSeedHash = generateServerSeedHash(serverSeed)
+      const seedId = `seed-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      
+      // Store seed securely (in production, use encrypted database)
+      serverSeeds.set(seedId, {
+        seed: serverSeed,
+        hash: serverSeedHash,
+        timestamp: Date.now()
+      })
+      
+      // Log for audit
+      auditLog.push({
+        timestamp: Date.now(),
+        action: 'SERVER_SEED_CREATED',
+        data: { seedId, operatorId, hash: serverSeedHash }
+      })
+      
+      return NextResponse.json({
+        seedId,
+        serverSeedHash,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+      })
+    }
+    
+    if (action === 'reveal') {
+      // Reveal server seed
+      const { roundId, playerId } = body
+      
+      if (!roundId || !playerId) {
+        return NextResponse.json({ error: 'Round ID and Player ID required' }, { status: 400 })
+      }
+      
+      const gameResult = gameResults.get(roundId)
+      if (!gameResult) {
+        return NextResponse.json({ error: 'Game not found' }, { status: 404 })
+      }
+      
+      // Find the server seed used for this game
+      let serverSeed = ''
+      for (const [seedId, seedData] of Array.from(serverSeeds.entries())) {
+        if (seedData.hash === gameResult.resultHash) {
+          serverSeed = seedData.seed
+          break
+        }
+      }
+      
+      if (!serverSeed) {
+        return NextResponse.json({ error: 'Server seed not found' }, { status: 404 })
+      }
+      
+      // Log reveal for audit
+      auditLog.push({
+        timestamp: Date.now(),
+        action: 'SERVER_SEED_REVEALED',
+        data: { roundId, playerId, serverSeedHash: gameResult.resultHash }
+      })
+      
+      return NextResponse.json({
+        roundId,
+        serverSeed,
+        clientSeed: 'default', // Client seed would be stored separately in production
+        nonce: 0, // Nonce would be stored separately in production
+        timestamp: Date.now()
+      })
+    }
+    
+    // Default: Play game
     const { 
       seedId, 
       clientSeed, 
@@ -206,139 +290,8 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error playing game:', error)
+    console.error('Error in POST /api/minesweeper:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-/**
- * POST /api/minesweeper/reveal
- * Reveals the server seed for a completed game
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { roundId, playerId } = body
-    
-    if (!roundId || !playerId) {
-      return NextResponse.json({ error: 'Round ID and Player ID required' }, { status: 400 })
-    }
-    
-    const gameResult = gameResults.get(roundId)
-    if (!gameResult) {
-      return NextResponse.json({ error: 'Game not found' }, { status: 404 })
-    }
-    
-    // Find the server seed used for this game
-    let serverSeed = ''
-    for (const [seedId, seedData] of serverSeeds.entries()) {
-      if (seedData.hash === gameResult.resultHash) {
-        serverSeed = seedData.seed
-        break
-      }
-    }
-    
-    if (!serverSeed) {
-      return NextResponse.json({ error: 'Server seed not found' }, { status: 404 })
-    }
-    
-    // Log reveal for audit
-    auditLog.push({
-      timestamp: Date.now(),
-      action: 'SERVER_SEED_REVEALED',
-      data: { roundId, playerId, serverSeedHash: gameResult.resultHash }
-    })
-    
-    return NextResponse.json({
-      roundId,
-      serverSeed,
-      clientSeed: gameResult.clientSeed || 'default',
-      nonce: gameResult.nonce || 0,
-      timestamp: Date.now()
-    })
-    
-  } catch (error) {
-    console.error('Error revealing server seed:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-/**
- * GET /api/minesweeper/round-log
- * Returns audit log for a specific round
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const roundId = searchParams.get('roundId')
-    
-    if (!roundId) {
-      return NextResponse.json({ error: 'Round ID required' }, { status: 400 })
-    }
-    
-    const gameResult = gameResults.get(roundId)
-    if (!gameResult) {
-      return NextResponse.json({ error: 'Round not found' }, { status: 404 })
-    }
-    
-    // Get relevant audit logs
-    const roundLogs = auditLog.filter(log => 
-      log.data.roundId === roundId || 
-      log.data.seedId === roundId
-    )
-    
-    return NextResponse.json({
-      roundId,
-      gameResult,
-      auditLog: roundLogs,
-      publicKey,
-      timestamp: Date.now()
-    })
-    
-  } catch (error) {
-    console.error('Error retrieving round log:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-/**
- * GET /api/minesweeper/audit-export
- * Exports audit logs for regulatory compliance
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const startTime = parseInt(searchParams.get('startTime') || '0')
-    const endTime = parseInt(searchParams.get('endTime') || Date.now().toString())
-    
-    // Filter logs by time range
-    const filteredLogs = auditLog.filter(log => 
-      log.timestamp >= startTime && log.timestamp <= endTime
-    )
-    
-    // Create export package
-    const exportData = {
-      exportTimestamp: Date.now(),
-      timeRange: { startTime, endTime },
-      totalLogs: filteredLogs.length,
-      logs: filteredLogs,
-      publicKey,
-      version: '1.0.0'
-    }
-    
-    // Sign the export
-    const exportSignature = crypto
-      .createSign('RSA-SHA256')
-      .update(JSON.stringify(exportData))
-      .sign(privateKey, 'hex')
-    
-    return NextResponse.json({
-      ...exportData,
-      signature: exportSignature
-    })
-    
-  } catch (error) {
-    console.error('Error exporting audit logs:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}

@@ -61,6 +61,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           achievements: [],
           referralCode: '',
           isGhostMode: false,
+          is_mod: false, // Default to not moderator
+          is_admin: false, // Default to not admin
           country: session.user.user_metadata?.country,
           state: session.user.user_metadata?.state,
           dateOfBirth: session.user.user_metadata?.dateOfBirth,
@@ -109,6 +111,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           achievements: [],
           referralCode: '',
           isGhostMode: false,
+          is_mod: false, // Default to not moderator
+          is_admin: false, // Default to not admin
           country: session.user.user_metadata?.country,
           state: session.user.user_metadata?.state,
           dateOfBirth: session.user.user_metadata?.dateOfBirth,
