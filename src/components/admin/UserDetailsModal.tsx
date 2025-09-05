@@ -87,7 +87,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   const fetchUserDetails = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/admin/users?userId=${userId}`)
+      const response = await fetch(`/api/admin/users-new?userId=${userId}`)
       const data = await response.json()
       
       if (data.user) {

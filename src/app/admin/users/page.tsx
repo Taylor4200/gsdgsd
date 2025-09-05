@@ -66,7 +66,7 @@ const AdminUsersPage: React.FC = () => {
         ...(roleFilter && { role: roleFilter })
       })
 
-      const response = await fetch(`/api/admin/users?${params}`)
+      const response = await fetch(`/api/admin/users-new?${params}`)
       const data = await response.json()
 
       if (data.users) {
@@ -82,7 +82,7 @@ const AdminUsersPage: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch('/api/admin/users-new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'stats' })
@@ -101,7 +101,7 @@ const AdminUsersPage: React.FC = () => {
 
   const handleRoleUpdate = async (userId: string, role: string, value: any) => {
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch('/api/admin/users-new', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, role, value })
