@@ -20,7 +20,8 @@ import {
   LogOut,
   Menu,
   X,
-  Star
+  Star,
+  Ticket
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useUserStore } from '@/store/userStore'
@@ -152,6 +153,7 @@ const AdminPanel = () => {
     { id: 'users', label: 'Users', icon: Users },
     { id: 'transactions', label: 'Transactions', icon: DollarSign },
     { id: 'games', label: 'Games', icon: Gamepad2 },
+    { id: 'raffles', label: 'Raffles', icon: Ticket },
     { id: 'support', label: 'Support', icon: Bell },
     { id: 'news', label: 'News', icon: FileText },
     { id: 'security', label: 'Security', icon: Shield },
@@ -818,6 +820,10 @@ const AdminPanel = () => {
         return renderTransactions()
       case 'games':
         return renderGames()
+      case 'raffles':
+        // Redirect to raffles admin page
+        router.push('/admin/raffles')
+        return null
       case 'support':
         return renderSupport()
       case 'news':
