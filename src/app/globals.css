@@ -1,0 +1,309 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --neon-blue: #3b82f6;
+  --neon-purple: #6366f1;
+  --neon-pink: #ec4899;
+  --neon-green: #10b981;
+  --neon-yellow: #f59e0b;
+  --neon-orange: #f97316;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Rajdhani', sans-serif;
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+body {
+  background: #0f1419;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(26, 26, 26, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
+}
+
+/* Glass morphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+/* Neon text effects */
+.neon-text {
+  text-shadow: 
+    0 0 1px currentColor,
+    0 0 2px currentColor;
+}
+
+.neon-text-blue {
+  color: var(--neon-blue);
+  text-shadow: 
+    0 0 1px var(--neon-blue),
+    0 0 2px var(--neon-blue);
+}
+
+.neon-text-blue:hover {
+  text-shadow: 
+    0 0 2px var(--neon-blue),
+    0 0 4px var(--neon-blue),
+    0 0 6px var(--neon-blue);
+}
+
+.neon-text-purple {
+  color: var(--neon-purple);
+  text-shadow: 
+    0 0 1px var(--neon-purple),
+    0 0 2px var(--neon-purple);
+}
+
+.neon-text-purple:hover {
+  text-shadow: 
+    0 0 2px var(--neon-purple),
+    0 0 4px var(--neon-purple),
+    0 0 6px var(--neon-purple);
+}
+
+.neon-text-pink {
+  color: var(--neon-pink);
+  text-shadow: 
+    0 0 1px var(--neon-pink),
+    0 0 2px var(--neon-pink);
+}
+
+.neon-text-pink:hover {
+  text-shadow: 
+    0 0 2px var(--neon-pink),
+    0 0 4px var(--neon-pink),
+    0 0 6px var(--neon-pink);
+}
+
+/* Neon border effects */
+.neon-border {
+  border: 2px solid transparent;
+  background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: exclude;
+  mask-composite: exclude;
+}
+
+/* Button animations */
+.btn-neon {
+  position: relative;
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid var(--neon-blue);
+  color: var(--neon-blue);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  box-shadow: 
+    0 0 5px var(--neon-blue);
+}
+
+.btn-neon:hover {
+  background: var(--neon-blue);
+  color: #000;
+  box-shadow: 
+    0 0 20px var(--neon-blue),
+    0 0 40px var(--neon-blue),
+    0 0 60px var(--neon-blue);
+}
+
+.btn-neon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-neon:hover::before {
+  left: 100%;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+  transform-style: preserve-3d;
+  box-shadow: 
+    0 10px 20px rgba(59, 130, 246, 0.1);
+}
+
+.card-hover:hover {
+  transform: translateY(-5px) rotateX(5deg) rotateY(5deg);
+  box-shadow: 
+    0 20px 40px rgba(59, 130, 246, 0.3),
+    0 0 30px rgba(99, 102, 241, 0.2);
+}
+
+/* Particle animation container */
+.particles-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Loading spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(59, 130, 246, 0.3);
+  border-top: 4px solid var(--neon-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Jackpot counter animation */
+@keyframes jackpot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    text-shadow: 
+      0 0 5px var(--neon-yellow),
+      0 0 10px var(--neon-yellow);
+  }
+  50% {
+    transform: scale(1.05);
+    text-shadow: 
+      0 0 15px var(--neon-yellow),
+      0 0 30px var(--neon-yellow),
+      0 0 45px var(--neon-yellow);
+  }
+}
+
+.jackpot-pulse {
+  animation: jackpot-pulse 2s ease-in-out infinite;
+}
+
+/* Win celebration effects */
+@keyframes celebrate {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+
+.celebrate {
+  animation: celebrate 0.6s ease-in-out;
+}
+
+/* Ticker animations */
+@keyframes ticker-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.1);
+  }
+}
+
+@keyframes ticker-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(0, 212, 255, 0.5),
+      0 0 40px rgba(0, 212, 255, 0.3),
+      0 0 60px rgba(0, 212, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(0, 212, 255, 0.8),
+      0 0 60px rgba(0, 212, 255, 0.5),
+      0 0 90px rgba(0, 212, 255, 0.3);
+  }
+}
+
+@keyframes ticker-slide {
+  0% {
+    transform: translateX(-100%) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0%) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0%) scale(1);
+    opacity: 1;
+  }
+}
+
+.ticker-bounce {
+  animation: ticker-bounce 0.6s ease-in-out infinite;
+}
+
+.ticker-glow {
+  animation: ticker-glow 1s ease-in-out infinite;
+}
+
+.ticker-slide {
+  animation: ticker-slide 0.3s ease-out;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .neon-text {
+    font-size: clamp(1.5rem, 5vw, 3rem);
+  }
+  
+  .btn-neon {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
