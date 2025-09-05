@@ -36,7 +36,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       console.log('Initial session check:', { session: !!session, user: session?.user?.email, error })
       
       // Allow session even if not confirmed (for better UX)
@@ -44,6 +44,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setSession(session)
         setUserState(session.user)
         
+        // Get user profile data from user_profiles table
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('is_mod, is_admin, is_vip, level, is_banned')
+          .eq('user_id', session.user.id)
+          .single()
+
         // Update Zustand store with user data
         const userData = {
           id: session.user.id,
@@ -52,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           balance: 5000, // Default balance
           gcBalance: 0,
           sweepstakesCoins: 5000, // Legacy field
-          level: 25,
+          level: profile?.level || 25,
           experience: 0,
           totalWagered: 0,
           totalWon: 0,
@@ -61,8 +68,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           achievements: [],
           referralCode: '',
           isGhostMode: false,
-          is_mod: false, // Default to not moderator
-          is_admin: false, // Default to not admin
+          is_mod: profile?.is_mod || false, // Get from user_profiles
+          is_admin: profile?.is_admin || false, // Get from user_profiles
           country: session.user.user_metadata?.country,
           state: session.user.user_metadata?.state,
           dateOfBirth: session.user.user_metadata?.dateOfBirth,
@@ -94,6 +101,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setSession(session)
         setUserState(session.user)
         
+        // Get user profile data from user_profiles table
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('is_mod, is_admin, is_vip, level, is_banned')
+          .eq('user_id', session.user.id)
+          .single()
+
         // Update Zustand store with user data
         const userData = {
           id: session.user.id,
@@ -102,7 +116,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           balance: 5000, // Default balance
           gcBalance: 0,
           sweepstakesCoins: 5000, // Legacy field
-          level: 25,
+          level: profile?.level || 25,
           experience: 0,
           totalWagered: 0,
           totalWon: 0,
@@ -111,8 +125,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           achievements: [],
           referralCode: '',
           isGhostMode: false,
-          is_mod: false, // Default to not moderator
-          is_admin: false, // Default to not admin
+          is_mod: profile?.is_mod || false, // Get from user_profiles
+          is_admin: profile?.is_admin || false, // Get from user_profiles
           country: session.user.user_metadata?.country,
           state: session.user.user_metadata?.state,
           dateOfBirth: session.user.user_metadata?.dateOfBirth,

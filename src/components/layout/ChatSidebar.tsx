@@ -351,7 +351,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setShowModMenu(showModMenu === msg.id ? null : msg.id)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowModMenu(showModMenu === msg.id ? null : msg.id)
+                            }}
                             className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
                           >
                             <MoreVertical className="h-3 w-3 text-gray-400" />
@@ -360,21 +363,30 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                             <div className="absolute right-0 top-6 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 min-w-32">
                               <div className="py-1">
                                 <button
-                                  onClick={() => handleModAction('view_history', msg.id, msg.user_id, msg.username)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleModAction('view_history', msg.id, msg.user_id, msg.username)
+                                  }}
                                   className="flex items-center w-full px-3 py-2 text-sm text-gray-200 hover:bg-gray-700"
                                 >
                                   <Eye className="h-3 w-3 mr-2" />
                                   View History
                                 </button>
                                 <button
-                                  onClick={() => handleModAction('ban', msg.id, msg.user_id, msg.username)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleModAction('ban', msg.id, msg.user_id, msg.username)
+                                  }}
                                   className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
                                 >
                                   <Ban className="h-3 w-3 mr-2" />
                                   Ban User
                                 </button>
                                 <button
-                                  onClick={() => handleModAction('delete', msg.id, msg.user_id, msg.username)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleModAction('delete', msg.id, msg.user_id, msg.username)
+                                  }}
                                   className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
                                 >
                                   <Trash2 className="h-3 w-3 mr-2" />
