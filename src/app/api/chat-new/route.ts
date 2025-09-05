@@ -205,3 +205,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+// DELETE: Delete a message (mod only)
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { messageId } = body
+
+    if (!messageId) {
+      return NextResponse.json({ error: 'Message ID required' }, { status: 400 })
+    }
+
+    // Delete the message
+    const { error } = await supabase
+      .from('chat_messages')
+      .delete()
+      .eq('id', messageId)
+
+    if (error) {
+      console.error('Error deleting message:', error)
+      return NextResponse.json({ error: 'Failed to delete message' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+
+  } catch (error) {
+    console.error('Error in DELETE /api/chat-new:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

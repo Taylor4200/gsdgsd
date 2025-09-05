@@ -15,7 +15,11 @@ import {
   Settings,
   Shield,
   Star,
-  Zap
+  Zap,
+  MoreVertical,
+  Ban,
+  Trash2,
+  Eye
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -43,6 +47,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [showUserProfile, setShowUserProfile] = useState(false)
+  const [showModMenu, setShowModMenu] = useState<string | null>(null)
 
   // Initialize chat when user is available
   useEffect(() => {
@@ -166,6 +171,64 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
     return null
   }
 
+  const handleModAction = async (action: string, messageId: string, userId: string, username: string) => {
+    if (!user?.is_mod) return
+
+    try {
+      let response
+      switch (action) {
+        case 'ban':
+          response = await fetch('/api/admin/users-new', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId, 
+              role: 'is_banned', 
+              value: true 
+            })
+          })
+          break
+        case 'unban':
+          response = await fetch('/api/admin/users-new', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId, 
+              role: 'is_banned', 
+              value: false 
+            })
+          })
+          break
+        case 'delete':
+          response = await fetch('/api/chat-new', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messageId })
+          })
+          if (response.ok) {
+            setMessages(prev => prev.filter(msg => msg.id !== messageId))
+          }
+          break
+        case 'view_history':
+          setSelectedUser({ id: userId, username })
+          setShowUserProfile(true)
+          break
+      }
+      
+      if (response && response.ok) {
+        setShowModMenu(null)
+        // Refresh messages to show updated status
+        const messagesResponse = await fetch('/api/chat-new')
+        const data = await messagesResponse.json()
+        if (data.messages) {
+          setMessages(data.messages)
+        }
+      }
+    } catch (error) {
+      console.error('Mod action failed:', error)
+    }
+  }
+
   const handleUserClick = (msg: ChatMessage) => {
     setSelectedUser({
       id: msg.user_id,
@@ -282,6 +345,46 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                       <span className="text-xs text-gray-500">
                         {formatMessageTime(new Date(msg.created_at))}
                       </span>
+                      {/* Mod Controls */}
+                      {user?.is_mod && (
+                        <div className="relative ml-auto">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowModMenu(showModMenu === msg.id ? null : msg.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                          >
+                            <MoreVertical className="h-3 w-3 text-gray-400" />
+                          </Button>
+                          {showModMenu === msg.id && (
+                            <div className="absolute right-0 top-6 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 min-w-32">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => handleModAction('view_history', msg.id, msg.user_id, msg.username)}
+                                  className="flex items-center w-full px-3 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                                >
+                                  <Eye className="h-3 w-3 mr-2" />
+                                  View History
+                                </button>
+                                <button
+                                  onClick={() => handleModAction('ban', msg.id, msg.user_id, msg.username)}
+                                  className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
+                                >
+                                  <Ban className="h-3 w-3 mr-2" />
+                                  Ban User
+                                </button>
+                                <button
+                                  onClick={() => handleModAction('delete', msg.id, msg.user_id, msg.username)}
+                                  className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-2" />
+                                  Delete Message
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <p className="text-sm text-gray-200 mt-1 break-words">
                       {msg.message}
