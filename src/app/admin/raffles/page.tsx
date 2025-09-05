@@ -40,7 +40,6 @@ const RaffleAdmin: React.FC = () => {
   // Form state
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     total_prize: '',
     start_date: '',
     end_date: '',
@@ -162,7 +161,6 @@ const RaffleAdmin: React.FC = () => {
   const resetForm = () => {
     setFormData({
       title: '',
-      description: '',
       total_prize: '',
       start_date: '',
       end_date: '',
@@ -181,7 +179,6 @@ const RaffleAdmin: React.FC = () => {
     setEditingRaffle(raffle)
     setFormData({
       title: raffle.title,
-      description: raffle.description || '',
       total_prize: raffle.total_prize.toString(),
       start_date: raffle.start_date.split('T')[0],
       end_date: raffle.end_date.split('T')[0],
@@ -391,16 +388,6 @@ const RaffleAdmin: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"
-                  rows={3}
-                  placeholder="Raffle description..."
-                />
-              </div>
 
               {/* Prizes Section */}
               <div className="mb-6">
@@ -462,10 +449,10 @@ const RaffleAdmin: React.FC = () => {
                 </div>
               </div>
 
-              {/* Game Multipliers Section */}
+              {/* Ticket Requirements Section */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-white">Game Multipliers</h3>
+                  <h3 className="text-lg font-semibold text-white">Ticket Requirements by Game</h3>
                   <Button
                     onClick={addGameMultiplier}
                     variant="ghost"
@@ -476,48 +463,65 @@ const RaffleAdmin: React.FC = () => {
                     Add Game
                   </Button>
                 </div>
+                <p className="text-sm text-gray-400 mb-4">
+                  Set how much users need to wager to earn tickets for each game
+                </p>
                 <div className="space-y-3">
                   {formData.game_multipliers.map((multiplier, index) => (
                     <div key={index} className="grid grid-cols-5 gap-3 items-center">
-                      <select
-                        value={multiplier.game_id}
-                        onChange={(e) => {
-                          const game = availableGames.find(g => g.id === e.target.value)
-                          updateGameMultiplier(index, 'game_id', e.target.value)
-                          updateGameMultiplier(index, 'game_name', game?.name || '')
-                        }}
-                        className="bg-gray-800 border border-gray-600 rounded-lg p-2 text-white"
-                      >
-                        {availableGames.map(game => (
-                          <option key={game.id} value={game.id}>{game.name}</option>
-                        ))}
-                      </select>
-                      <Input
-                        value={multiplier.multiplier}
-                        onChange={(e) => updateGameMultiplier(index, 'multiplier', e.target.value)}
-                        className="bg-gray-800 border-gray-600 text-white"
-                        placeholder="Multiplier"
-                      />
-                      <Input
-                        value={multiplier.wager_requirement}
-                        onChange={(e) => updateGameMultiplier(index, 'wager_requirement', e.target.value)}
-                        className="bg-gray-800 border-gray-600 text-white"
-                        placeholder="Wager Req ($)"
-                      />
-                      <Input
-                        value={multiplier.tickets_per_wager}
-                        onChange={(e) => updateGameMultiplier(index, 'tickets_per_wager', e.target.value)}
-                        className="bg-gray-800 border-gray-600 text-white"
-                        placeholder="Tickets"
-                      />
-                      <Button
-                        onClick={() => removeGameMultiplier(index)}
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Game</label>
+                        <select
+                          value={multiplier.game_id}
+                          onChange={(e) => {
+                            const game = availableGames.find(g => g.id === e.target.value)
+                            updateGameMultiplier(index, 'game_id', e.target.value)
+                            updateGameMultiplier(index, 'game_name', game?.name || '')
+                          }}
+                          className="bg-gray-800 border border-gray-600 rounded-lg p-2 text-white w-full"
+                        >
+                          {availableGames.map(game => (
+                            <option key={game.id} value={game.id}>{game.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Wager Needed ($)</label>
+                        <Input
+                          value={multiplier.wager_requirement}
+                          onChange={(e) => updateGameMultiplier(index, 'wager_requirement', e.target.value)}
+                          className="bg-gray-800 border-gray-600 text-white"
+                          placeholder="1000"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Tickets Earned</label>
+                        <Input
+                          value={multiplier.tickets_per_wager}
+                          onChange={(e) => updateGameMultiplier(index, 'tickets_per_wager', e.target.value)}
+                          className="bg-gray-800 border-gray-600 text-white"
+                          placeholder="1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Multiplier</label>
+                        <Input
+                          value={multiplier.multiplier}
+                          onChange={(e) => updateGameMultiplier(index, 'multiplier', e.target.value)}
+                          className="bg-gray-800 border-gray-600 text-white"
+                          placeholder="1.00"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button
+                          onClick={() => removeGameMultiplier(index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
