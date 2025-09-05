@@ -45,6 +45,18 @@ export class ChatService {
   // Send a message
   async sendMessage(message: string, username: string, userId: string): Promise<ChatMessage | null> {
     try {
+      // Get or create user profile first
+      const { data: profile, error: profileError } = await supabase.rpc('get_or_create_user_profile', {
+        p_user_id: userId,
+        p_username: username
+      })
+
+      if (profileError) {
+        console.error('Error getting user profile:', profileError)
+        return null
+      }
+
+      // Insert message with NO role data (will be fetched from profile when displaying)
       const { data, error } = await supabase
         .from('chat_messages')
         .insert({
@@ -52,9 +64,6 @@ export class ChatService {
           username,
           message,
           message_type: 'message',
-          level: 1,
-          is_vip: false,
-          is_mod: false,
           is_banned: false
         })
         .select()
@@ -65,7 +74,19 @@ export class ChatService {
         return null
       }
 
-      return data
+      // Update message count in profile
+      await supabase
+        .from('user_profiles')
+        .update({ total_messages: (profile.total_messages || 0) + 1 })
+        .eq('user_id', userId)
+
+      // Return message with current profile data
+      return {
+        ...data,
+        level: profile.level || 1,
+        is_vip: profile.is_vip || false,
+        is_mod: profile.is_mod || false
+      }
     } catch (error) {
       console.error('Error sending message:', error)
       return null
@@ -75,9 +96,9 @@ export class ChatService {
   // Get recent messages
   async getRecentMessages(limit: number = 50): Promise<ChatMessage[]> {
     try {
-      const { data, error } = await supabase
+      const { data: messages, error } = await supabase
         .from('chat_messages')
-        .select('*')
+        .select('id, user_id, username, message, message_type, created_at, updated_at, is_banned')
         .order('created_at', { ascending: false })
         .limit(limit)
 
@@ -86,7 +107,33 @@ export class ChatService {
         return []
       }
 
-      return data.reverse() // Reverse to show oldest first
+      // Get unique user IDs
+      const userIds = Array.from(new Set(messages?.map(m => m.user_id) || []))
+      
+      // Fetch user profiles
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, level, is_vip, is_mod')
+        .in('user_id', userIds)
+
+      // Create profile map
+      const profileMap = new Map()
+      profiles?.forEach(profile => {
+        profileMap.set(profile.user_id, profile)
+      })
+
+      // Enhance messages with profile data
+      const enhancedMessages = messages?.map(message => {
+        const profile = profileMap.get(message.user_id)
+        return {
+          ...message,
+          level: profile?.level || 1,
+          is_vip: profile?.is_vip || false,
+          is_mod: profile?.is_mod || false
+        }
+      }) || []
+
+      return enhancedMessages.reverse() // Reverse to show oldest first
     } catch (error) {
       console.error('Error fetching messages:', error)
       return []

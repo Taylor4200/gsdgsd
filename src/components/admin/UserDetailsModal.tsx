@@ -108,7 +108,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
   const handleRoleUpdate = async (role: string, value: any) => {
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch('/api/admin/users-new', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, role, value })
