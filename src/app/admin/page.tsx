@@ -140,6 +140,8 @@ const AdminPanel = () => {
     prize_pool: '',
     top_winners: '10',
     remaining_winners: '90',
+    top_winners_percentage: '60',
+    remaining_winners_percentage: '40',
     game_multipliers: [
       { game_id: 'general', game_name: 'All Games', multiplier: '1.00', wager_requirement: '1000', tickets_per_wager: '1' }
     ]
@@ -343,6 +345,8 @@ const AdminPanel = () => {
       prize_pool: '',
       top_winners: '10',
       remaining_winners: '90',
+      top_winners_percentage: '60',
+      remaining_winners_percentage: '40',
       game_multipliers: [
         { game_id: 'general', game_name: 'All Games', multiplier: '1.00', wager_requirement: '1000', tickets_per_wager: '1' }
       ]
@@ -359,6 +363,8 @@ const AdminPanel = () => {
       prize_pool: raffle.total_prize.toString(),
       top_winners: '10',
       remaining_winners: '90',
+      top_winners_percentage: '60',
+      remaining_winners_percentage: '40',
       game_multipliers: raffle.raffle_game_multipliers.map(mult => ({
         game_id: mult.game_id,
         game_name: mult.game_name,
@@ -402,14 +408,16 @@ const AdminPanel = () => {
     const prizePool = parseFloat(raffleFormData.prize_pool) || 0
     const topWinners = parseInt(raffleFormData.top_winners) || 0
     const remainingWinners = parseInt(raffleFormData.remaining_winners) || 0
+    const topPercentage = parseFloat(raffleFormData.top_winners_percentage) || 60
+    const remainingPercentage = parseFloat(raffleFormData.remaining_winners_percentage) || 40
     
     if (prizePool === 0 || topWinners === 0) return []
 
     const prizes = []
     
-    // Top winners get decreasing amounts (1st gets most, 2nd gets less, etc.)
-    const topPrizeTotal = prizePool * 0.6 // Top winners get 60% of pool
-    const remainingPrizeTotal = prizePool * 0.4 // Remaining winners get 40% of pool
+    // Top winners get custom percentage of pool
+    const topPrizeTotal = prizePool * (topPercentage / 100)
+    const remainingPrizeTotal = prizePool * (remainingPercentage / 100)
     
     // Calculate top prizes (decreasing amounts)
     for (let i = 1; i <= topWinners; i++) {
@@ -998,6 +1006,48 @@ const AdminPanel = () => {
                 <p className="text-xs text-gray-500 mt-1">Remaining winners get equal amounts</p>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Top Winners %</label>
+                <input
+                  type="number"
+                  value={raffleFormData.top_winners_percentage}
+                  onChange={(e) => {
+                    const topPercent = e.target.value
+                    const remainingPercent = (100 - parseFloat(topPercent)).toString()
+                    setRaffleFormData(prev => ({ 
+                      ...prev, 
+                      top_winners_percentage: topPercent,
+                      remaining_winners_percentage: remainingPercent
+                    }))
+                  }}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                  placeholder="60"
+                  min="0"
+                  max="100"
+                />
+                <p className="text-xs text-gray-500 mt-1">Percentage of pool for top winners</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Remaining Winners %</label>
+                <input
+                  type="number"
+                  value={raffleFormData.remaining_winners_percentage}
+                  onChange={(e) => {
+                    const remainingPercent = e.target.value
+                    const topPercent = (100 - parseFloat(remainingPercent)).toString()
+                    setRaffleFormData(prev => ({ 
+                      ...prev, 
+                      remaining_winners_percentage: remainingPercent,
+                      top_winners_percentage: topPercent
+                    }))
+                  }}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                  placeholder="40"
+                  min="0"
+                  max="100"
+                />
+                <p className="text-xs text-gray-500 mt-1">Percentage of pool for remaining winners</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                 <input
                   type="date"
@@ -1023,7 +1073,7 @@ const AdminPanel = () => {
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Top Winners (60% of pool)</h4>
+                    <h4 className="font-medium text-gray-700 mb-2">Top Winners ({raffleFormData.top_winners_percentage}% of pool)</h4>
                     <div className="space-y-1 text-sm">
                       {calculatePrizeDistribution().slice(0, parseInt(raffleFormData.top_winners) || 0).map((prize, index) => (
                         <div key={index} className="flex justify-between">
@@ -1034,7 +1084,7 @@ const AdminPanel = () => {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Remaining Winners (40% of pool)</h4>
+                    <h4 className="font-medium text-gray-700 mb-2">Remaining Winners ({raffleFormData.remaining_winners_percentage}% of pool)</h4>
                     <div className="space-y-1 text-sm">
                       {parseInt(raffleFormData.remaining_winners) > 0 && (
                         <>
