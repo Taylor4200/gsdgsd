@@ -21,7 +21,14 @@ import {
   Menu,
   X,
   Star,
-  Ticket
+  Ticket,
+  Plus,
+  Edit,
+  Trash2,
+  Play,
+  Pause,
+  Calendar,
+  Gift
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useUserStore } from '@/store/userStore'
@@ -69,6 +76,30 @@ interface RecentActivity {
   status: 'pending' | 'completed' | 'failed'
 }
 
+interface Raffle {
+  id: string
+  title: string
+  description: string
+  total_prize: number
+  start_date: string
+  end_date: string
+  status: 'draft' | 'active' | 'ended' | 'completed'
+  raffle_prizes: Array<{
+    id: string
+    place: number
+    amount: number
+    percentage: number
+  }>
+  raffle_game_multipliers: Array<{
+    id: string
+    game_id: string
+    game_name: string
+    multiplier: number
+    wager_requirement: number
+    tickets_per_wager: number
+  }>
+}
+
 const AdminPanel = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -94,8 +125,38 @@ const AdminPanel = () => {
     averageSessionTime: 0
   })
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
+  const [raffles, setRaffles] = useState<Raffle[]>([])
+  const [showCreateRaffleModal, setShowCreateRaffleModal] = useState(false)
+  const [editingRaffle, setEditingRaffle] = useState<Raffle | null>(null)
   const { user } = useUserStore()
   const router = useRouter()
+
+  // Raffle form state
+  const [raffleFormData, setRaffleFormData] = useState({
+    title: '',
+    total_prize: '',
+    start_date: '',
+    end_date: '',
+    prizes: [
+      { place: 1, amount: '', percentage: '' },
+      { place: 2, amount: '', percentage: '' },
+      { place: 3, amount: '', percentage: '' }
+    ],
+    game_multipliers: [
+      { game_id: 'general', game_name: 'All Games', multiplier: '1.00', wager_requirement: '1000', tickets_per_wager: '1' }
+    ]
+  })
+
+  // Available games for multipliers
+  const availableGames = [
+    { id: 'general', name: 'All Games' },
+    { id: 'blackjack', name: 'Blackjack' },
+    { id: 'baccarat', name: 'Baccarat' },
+    { id: 'dice', name: 'Dice' },
+    { id: 'limbo', name: 'Limbo' },
+    { id: 'minesweeper', name: 'Minesweeper' },
+    { id: 'plinko', name: 'Plinko' }
+  ]
 
   // Mock news items
   const [newsItems, setNewsItems] = useState<NewsItem[]>([
@@ -173,8 +234,179 @@ const AdminPanel = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchAdminData()
+      fetchRaffles()
     }
   }, [isAuthenticated])
+
+  const fetchRaffles = async () => {
+    try {
+      const response = await fetch('/api/raffles?includeEnded=true')
+      const data = await response.json()
+      setRaffles(data.raffles || [])
+    } catch (error) {
+      console.error('Error fetching raffles:', error)
+    }
+  }
+
+  const handleCreateRaffle = async () => {
+    try {
+      const response = await fetch('/api/raffles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(raffleFormData)
+      })
+
+      if (response.ok) {
+        setShowCreateRaffleModal(false)
+        resetRaffleForm()
+        fetchRaffles()
+      }
+    } catch (error) {
+      console.error('Error creating raffle:', error)
+    }
+  }
+
+  const handleUpdateRaffle = async () => {
+    if (!editingRaffle) return
+
+    try {
+      const response = await fetch('/api/raffles', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          raffle_id: editingRaffle.id,
+          ...raffleFormData
+        })
+      })
+
+      if (response.ok) {
+        setEditingRaffle(null)
+        resetRaffleForm()
+        fetchRaffles()
+      }
+    } catch (error) {
+      console.error('Error updating raffle:', error)
+    }
+  }
+
+  const handleDeleteRaffle = async (raffleId: string) => {
+    if (!confirm('Are you sure you want to delete this raffle?')) return
+
+    try {
+      const response = await fetch('/api/raffles', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raffle_id: raffleId })
+      })
+
+      if (response.ok) {
+        fetchRaffles()
+      }
+    } catch (error) {
+      console.error('Error deleting raffle:', error)
+    }
+  }
+
+  const handleRaffleStatusChange = async (raffleId: string, newStatus: string) => {
+    try {
+      const response = await fetch('/api/raffles', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          raffle_id: raffleId,
+          status: newStatus
+        })
+      })
+
+      if (response.ok) {
+        fetchRaffles()
+      }
+    } catch (error) {
+      console.error('Error updating raffle status:', error)
+    }
+  }
+
+  const resetRaffleForm = () => {
+    setRaffleFormData({
+      title: '',
+      total_prize: '',
+      start_date: '',
+      end_date: '',
+      prizes: [
+        { place: 1, amount: '', percentage: '' },
+        { place: 2, amount: '', percentage: '' },
+        { place: 3, amount: '', percentage: '' }
+      ],
+      game_multipliers: [
+        { game_id: 'general', game_name: 'All Games', multiplier: '1.00', wager_requirement: '1000', tickets_per_wager: '1' }
+      ]
+    })
+  }
+
+  const openEditRaffleModal = (raffle: Raffle) => {
+    setEditingRaffle(raffle)
+    setRaffleFormData({
+      title: raffle.title,
+      total_prize: raffle.total_prize.toString(),
+      start_date: raffle.start_date.split('T')[0],
+      end_date: raffle.end_date.split('T')[0],
+      prizes: raffle.raffle_prizes.map(prize => ({
+        place: prize.place,
+        amount: prize.amount.toString(),
+        percentage: prize.percentage.toString()
+      })),
+      game_multipliers: raffle.raffle_game_multipliers.map(mult => ({
+        game_id: mult.game_id,
+        game_name: mult.game_name,
+        multiplier: mult.multiplier.toString(),
+        wager_requirement: mult.wager_requirement.toString(),
+        tickets_per_wager: mult.tickets_per_wager.toString()
+      }))
+    })
+  }
+
+  const addPrize = () => {
+    setRaffleFormData(prev => ({
+      ...prev,
+      prizes: [...prev.prizes, { place: prev.prizes.length + 1, amount: '', percentage: '' }]
+    }))
+  }
+
+  const removePrize = (index: number) => {
+    setRaffleFormData(prev => ({
+      ...prev,
+      prizes: prev.prizes.filter((_, i) => i !== index)
+    }))
+  }
+
+  const addGameMultiplier = () => {
+    setRaffleFormData(prev => ({
+      ...prev,
+      game_multipliers: [...prev.game_multipliers, { 
+        game_id: 'general', 
+        game_name: 'All Games', 
+        multiplier: '1.00', 
+        wager_requirement: '1000', 
+        tickets_per_wager: '1' 
+      }]
+    }))
+  }
+
+  const removeGameMultiplier = (index: number) => {
+    setRaffleFormData(prev => ({
+      ...prev,
+      game_multipliers: prev.game_multipliers.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateGameMultiplier = (index: number, field: string, value: string) => {
+    setRaffleFormData(prev => ({
+      ...prev,
+      game_multipliers: prev.game_multipliers.map((mult, i) => 
+        i === index ? { ...mult, [field]: value } : mult
+      )
+    }))
+  }
 
   const fetchAdminData = async () => {
     try {
@@ -587,6 +819,310 @@ const AdminPanel = () => {
     </div>
   )
 
+  const renderRaffles = () => (
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800">Raffle Management</h3>
+          <p className="text-gray-600">Manage raffles, prizes, and game multipliers</p>
+        </div>
+        <Button
+          onClick={() => setShowCreateRaffleModal(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Create Raffle
+        </Button>
+      </div>
+
+      {/* Raffles List */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {raffles.map((raffle) => (
+          <div
+            key={raffle.id}
+            className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <h4 className="text-lg font-semibold text-gray-800">{raffle.title}</h4>
+              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                raffle.status === 'active' ? 'bg-green-100 text-green-800' :
+                raffle.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                raffle.status === 'ended' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {raffle.status}
+              </span>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center text-gray-600">
+                <DollarSign className="h-4 w-4 mr-2" />
+                <span>${raffle.total_prize.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <Calendar className="h-4 w-4 mr-2" />
+                <span>{new Date(raffle.end_date).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <Gift className="h-4 w-4 mr-2" />
+                <span>{raffle.raffle_prizes.length} prizes</span>
+              </div>
+            </div>
+
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openEditRaffleModal(raffle)}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDeleteRaffle(raffle.id)}
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              {raffle.status === 'draft' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRaffleStatusChange(raffle.id, 'active')}
+                  className="text-green-600 hover:text-green-700"
+                >
+                  <Play className="h-4 w-4" />
+                </Button>
+              )}
+              {raffle.status === 'active' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRaffleStatusChange(raffle.id, 'ended')}
+                  className="text-yellow-600 hover:text-yellow-700"
+                >
+                  <Pause className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Create/Edit Modal */}
+      {(showCreateRaffleModal || editingRaffle) && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              {editingRaffle ? 'Edit Raffle' : 'Create New Raffle'}
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <input
+                  value={raffleFormData.title}
+                  onChange={(e) => setRaffleFormData(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                  placeholder="Weekly Raffle"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Total Prize ($)</label>
+                <input
+                  type="number"
+                  value={raffleFormData.total_prize}
+                  onChange={(e) => setRaffleFormData(prev => ({ ...prev, total_prize: e.target.value }))}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                  placeholder="100000"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                <input
+                  type="date"
+                  value={raffleFormData.start_date}
+                  onChange={(e) => setRaffleFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                <input
+                  type="date"
+                  value={raffleFormData.end_date}
+                  onChange={(e) => setRaffleFormData(prev => ({ ...prev, end_date: e.target.value }))}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-800"
+                />
+              </div>
+            </div>
+
+            {/* Prizes Section */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Prizes</h3>
+                <Button
+                  onClick={addPrize}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Prize
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {raffleFormData.prizes.map((prize, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <input
+                      value={prize.place}
+                      onChange={(e) => {
+                        const newPrizes = [...raffleFormData.prizes]
+                        newPrizes[index].place = parseInt(e.target.value) || 0
+                        setRaffleFormData(prev => ({ ...prev, prizes: newPrizes }))
+                      }}
+                      className="w-20 bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
+                      placeholder="Place"
+                    />
+                    <input
+                      value={prize.amount}
+                      onChange={(e) => {
+                        const newPrizes = [...raffleFormData.prizes]
+                        newPrizes[index].amount = e.target.value
+                        setRaffleFormData(prev => ({ ...prev, prizes: newPrizes }))
+                      }}
+                      className="flex-1 bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
+                      placeholder="Amount ($)"
+                    />
+                    <input
+                      value={prize.percentage}
+                      onChange={(e) => {
+                        const newPrizes = [...raffleFormData.prizes]
+                        newPrizes[index].percentage = e.target.value
+                        setRaffleFormData(prev => ({ ...prev, prizes: newPrizes }))
+                      }}
+                      className="w-24 bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
+                      placeholder="%"
+                    />
+                    <Button
+                      onClick={() => removePrize(index)}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ticket Requirements Section */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Ticket Requirements by Game</h3>
+                <Button
+                  onClick={addGameMultiplier}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Game
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Set how much users need to wager to earn tickets for each game
+              </p>
+              <div className="space-y-3">
+                {raffleFormData.game_multipliers.map((multiplier, index) => (
+                  <div key={index} className="grid grid-cols-5 gap-3 items-center">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Game</label>
+                      <select
+                        value={multiplier.game_id}
+                        onChange={(e) => {
+                          const game = availableGames.find(g => g.id === e.target.value)
+                          updateGameMultiplier(index, 'game_id', e.target.value)
+                          updateGameMultiplier(index, 'game_name', game?.name || '')
+                        }}
+                        className="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
+                      >
+                        {availableGames.map(game => (
+                          <option key={game.id} value={game.id}>{game.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Wager Needed ($)</label>
+                      <input
+                        value={multiplier.wager_requirement}
+                        onChange={(e) => updateGameMultiplier(index, 'wager_requirement', e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
+                        placeholder="1000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Tickets Earned</label>
+                      <input
+                        value={multiplier.tickets_per_wager}
+                        onChange={(e) => updateGameMultiplier(index, 'tickets_per_wager', e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
+                        placeholder="1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Multiplier</label>
+                      <input
+                        value={multiplier.multiplier}
+                        onChange={(e) => updateGameMultiplier(index, 'multiplier', e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-gray-800"
+                        placeholder="1.00"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        onClick={() => removeGameMultiplier(index)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                onClick={() => {
+                  setShowCreateRaffleModal(false)
+                  setEditingRaffle(null)
+                  resetRaffleForm()
+                }}
+                variant="outline"
+                className="text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={editingRaffle ? handleUpdateRaffle : handleCreateRaffle}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {editingRaffle ? 'Update Raffle' : 'Create Raffle'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
   const renderSupport = () => (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <h3 className="text-xl font-bold text-gray-800 mb-4">Support Management</h3>
@@ -821,9 +1357,7 @@ const AdminPanel = () => {
       case 'games':
         return renderGames()
       case 'raffles':
-        // Redirect to raffles admin page
-        router.push('/admin/raffles')
-        return null
+        return renderRaffles()
       case 'support':
         return renderSupport()
       case 'news':
