@@ -72,13 +72,24 @@ const WeeklyRaffle: React.FC = () => {
 
   const fetchRaffleData = async () => {
     try {
-      const response = await fetch(`/api/raffles?id=${raffleId}`)
-      const data = await response.json()
+      // Try to fetch by ID first (UUID)
+      let response = await fetch(`/api/raffles?id=${raffleId}`)
+      let data = await response.json()
       
-      if (response.ok) {
+      if (response.ok && data.raffle) {
         setRaffleData(data.raffle)
       } else {
-        setError('Raffle not found')
+        // If not found by ID, try to fetch all active raffles and find by title/slug
+        response = await fetch('/api/raffles?status=active')
+        data = await response.json()
+        
+        if (data.raffles && data.raffles.length > 0) {
+          // For now, just use the first active raffle
+          // In the future, you could implement slug matching
+          setRaffleData(data.raffles[0])
+        } else {
+          setError('No active raffles found')
+        }
       }
     } catch (error) {
       console.error('Error fetching raffle:', error)

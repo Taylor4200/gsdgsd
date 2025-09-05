@@ -1,16 +1,32 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, Users } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import GameCard from '@/components/ui/GameCard'
 import { games, getGamesByCategory, searchGames, getFeaturedGames, getOriginalsGames, getHotGames } from '@/lib/gameData'
+import { useRouter } from 'next/navigation'
+
+interface Raffle {
+  id: string
+  title: string
+  total_prize: number
+  end_date: string
+  status: string
+  raffle_prizes: Array<{
+    place: number
+    amount: number
+  }>
+}
 
 const CasinoHome: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('featured') // Default to featured games
   const [searchTerm, setSearchTerm] = useState('')
+  const [raffle, setRaffle] = useState<Raffle | null>(null)
+  const [timeLeft, setTimeLeft] = useState('')
+  const router = useRouter()
 
   const categories = [
     { id: 'continue', name: 'Continue Playing', count: 0 },
@@ -19,6 +35,59 @@ const CasinoHome: React.FC = () => {
     { id: 'popular', name: 'Popular', count: getHotGames().length },
     { id: 'all', name: 'All Games', count: games.length },
   ]
+
+  // Fetch active raffle
+  useEffect(() => {
+    fetchActiveRaffle()
+  }, [])
+
+  // Update countdown timer
+  useEffect(() => {
+    if (raffle) {
+      const timer = setInterval(updateCountdown, 1000)
+      updateCountdown() // Initial call
+      return () => clearInterval(timer)
+    }
+  }, [raffle])
+
+  const fetchActiveRaffle = async () => {
+    try {
+      const response = await fetch('/api/raffles?status=active')
+      const data = await response.json()
+      
+      if (data.raffles && data.raffles.length > 0) {
+        // Get the newest active raffle
+        const newestRaffle = data.raffles[0]
+        setRaffle(newestRaffle)
+      }
+    } catch (error) {
+      console.error('Error fetching raffle:', error)
+    }
+  }
+
+  const updateCountdown = () => {
+    if (!raffle) return
+
+    const now = new Date().getTime()
+    const endTime = new Date(raffle.end_date).getTime()
+    const timeDiff = endTime - now
+
+    if (timeDiff > 0) {
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
+      
+      setTimeLeft(`${days}d ${hours}h ${minutes}m`)
+    } else {
+      setTimeLeft('Ended')
+    }
+  }
+
+  const handleEnterRaffle = () => {
+    if (raffle) {
+      router.push(`/raffle/${raffle.id}`)
+    }
+  }
 
   const filteredGames = activeFilter === 'all' 
     ? games 
@@ -76,7 +145,7 @@ const CasinoHome: React.FC = () => {
                   <div className="md:hidden">
                     <div className="text-center mb-6">
                       <h2 className="text-2xl font-bold text-white mb-3">
-                        $100K Weekly Raffle
+                        {raffle ? raffle.title : '$100K Weekly Raffle'}
                       </h2>
                       <p className="text-gray-300 text-base mb-6 leading-relaxed">
                         Earn tickets with every wager and compete for massive prizes! Join thousands of players in our biggest weekly event.
@@ -84,25 +153,47 @@ const CasinoHome: React.FC = () => {
 
                       {/* Prize breakdown for mobile */}
                       <div className="grid grid-cols-3 gap-3 mb-6">
-                        <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-3 border border-yellow-500/30 flex flex-col items-center justify-center text-center min-h-[60px]">
-                          <div className="text-yellow-400 text-xs font-semibold mb-1">1st Place</div>
-                          <div className="text-lg font-bold text-white">$50K</div>
-                        </div>
-                        <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-3 border border-gray-400/30 flex flex-col items-center justify-center text-center min-h-[60px]">
-                          <div className="text-gray-400 text-xs font-semibold mb-1">2nd Place</div>
-                          <div className="text-lg font-bold text-white">$25K</div>
-                        </div>
-                        <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/30 flex flex-col items-center justify-center text-center min-h-[60px]">
-                          <div className="text-orange-400 text-xs font-semibold mb-1">3rd Place</div>
-                          <div className="text-lg font-bold text-white">$15K</div>
-                        </div>
+                        {raffle && raffle.raffle_prizes.slice(0, 3).map((prize, index) => (
+                          <div key={prize.place} className={`bg-gradient-to-br ${
+                            index === 0 ? 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30' :
+                            index === 1 ? 'from-gray-400/20 to-gray-500/20 border-gray-400/30' :
+                            'from-orange-500/20 to-orange-600/20 border-orange-500/30'
+                          } backdrop-blur-sm rounded-xl p-3 border flex flex-col items-center justify-center text-center min-h-[60px]`}>
+                            <div className={`text-xs font-semibold mb-1 ${
+                              index === 0 ? 'text-yellow-400' :
+                              index === 1 ? 'text-gray-400' :
+                              'text-orange-400'
+                            }`}>
+                              {prize.place}{prize.place === 1 ? 'st' : prize.place === 2 ? 'nd' : prize.place === 3 ? 'rd' : 'th'} Place
+                            </div>
+                            <div className="text-lg font-bold text-white">
+                              ${(prize.amount / 1000).toFixed(0)}K
+                            </div>
+                          </div>
+                        ))}
+                        {(!raffle || raffle.raffle_prizes.length < 3) && (
+                          <>
+                            <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-3 border border-yellow-500/30 flex flex-col items-center justify-center text-center min-h-[60px]">
+                              <div className="text-yellow-400 text-xs font-semibold mb-1">1st Place</div>
+                              <div className="text-lg font-bold text-white">$50K</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-3 border border-gray-400/30 flex flex-col items-center justify-center text-center min-h-[60px]">
+                              <div className="text-gray-400 text-xs font-semibold mb-1">2nd Place</div>
+                              <div className="text-lg font-bold text-white">$25K</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/30 flex flex-col items-center justify-center text-center min-h-[60px]">
+                              <div className="text-orange-400 text-xs font-semibold mb-1">3rd Place</div>
+                              <div className="text-lg font-bold text-white">$15K</div>
+                            </div>
+                          </>
+                        )}
                       </div>
                       
                       {/* Mobile Stats */}
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="bg-black/30 backdrop-blur-sm rounded-xl p-4 border border-[#00d4ff]/20">
                           <div className="text-[#00d4ff] text-xs font-semibold mb-1">Time Left</div>
-                          <div className="text-xl font-bold text-white">4d 21h</div>
+                          <div className="text-xl font-bold text-white">{timeLeft || '4d 21h'}</div>
                         </div>
                         <div className="bg-black/30 backdrop-blur-sm rounded-xl p-4 border border-[#00d4ff]/20">
                           <div className="text-[#00d4ff] text-xs font-semibold mb-1">Your Tickets</div>
@@ -113,7 +204,8 @@ const CasinoHome: React.FC = () => {
                       <Button 
                         variant="default" 
                         className="w-full bg-[#00d4ff] hover:bg-[#00d4ff]/90 text-black font-bold py-3 text-lg shadow-lg shadow-[#00d4ff]/25"
-                        onClick={() => window.location.href = '/raffle/weeklyraffle0901'}
+                        onClick={handleEnterRaffle}
+                        disabled={!raffle}
                       >
                         Enter Raffle
                       </Button>
@@ -127,7 +219,7 @@ const CasinoHome: React.FC = () => {
                       <div className="col-span-7">
                         <div className="mb-6">
                           <h2 className="text-4xl font-bold text-white mb-3">
-                            $100,000 Weekly Raffle
+                            {raffle ? raffle.title : '$100,000 Weekly Raffle'}
                           </h2>
                           <p className="text-gray-300 text-lg leading-relaxed">
                             Earn tickets with every wager and compete for massive prizes! Join thousands of players in our biggest weekly event.
@@ -136,28 +228,53 @@ const CasinoHome: React.FC = () => {
 
                         {/* Prize breakdown */}
                         <div className="grid grid-cols-4 gap-4 mb-6">
-                          <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
-                            <div className="text-yellow-400 text-sm font-semibold mb-2">1st Place</div>
-                            <div className="text-2xl font-bold text-white">$50,000</div>
-                          </div>
-                          <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-4 border border-gray-400/30 flex flex-col items-center justify-center text-center min-h-[80px]">
-                            <div className="text-gray-400 text-sm font-semibold mb-2">2nd Place</div>
-                            <div className="text-2xl font-bold text-white">$25,000</div>
-                          </div>
-                          <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
-                            <div className="text-orange-400 text-sm font-semibold mb-2">3rd Place</div>
-                            <div className="text-2xl font-bold text-white">$15,000</div>
-                          </div>
-                          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur-sm rounded-xl p-4 border border-purple-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
-                            <div className="text-purple-400 text-sm font-semibold mb-2">+ More Prizes</div>
-                            <div className="text-2xl font-bold text-white">$10,000</div>
-                          </div>
+                          {raffle && raffle.raffle_prizes.slice(0, 4).map((prize, index) => (
+                            <div key={prize.place} className={`bg-gradient-to-br ${
+                              index === 0 ? 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30' :
+                              index === 1 ? 'from-gray-400/20 to-gray-500/20 border-gray-400/30' :
+                              index === 2 ? 'from-orange-500/20 to-orange-600/20 border-orange-500/30' :
+                              'from-purple-500/20 to-purple-600/20 border-purple-500/30'
+                            } backdrop-blur-sm rounded-xl p-4 border flex flex-col items-center justify-center text-center min-h-[80px]`}>
+                              <div className={`text-sm font-semibold mb-2 ${
+                                index === 0 ? 'text-yellow-400' :
+                                index === 1 ? 'text-gray-400' :
+                                index === 2 ? 'text-orange-400' :
+                                'text-purple-400'
+                              }`}>
+                                {prize.place}{prize.place === 1 ? 'st' : prize.place === 2 ? 'nd' : prize.place === 3 ? 'rd' : 'th'} Place
+                              </div>
+                              <div className="text-2xl font-bold text-white">
+                                ${prize.amount.toLocaleString()}
+                              </div>
+                            </div>
+                          ))}
+                          {(!raffle || raffle.raffle_prizes.length < 4) && (
+                            <>
+                              <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
+                                <div className="text-yellow-400 text-sm font-semibold mb-2">1st Place</div>
+                                <div className="text-2xl font-bold text-white">$50,000</div>
+                              </div>
+                              <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-4 border border-gray-400/30 flex flex-col items-center justify-center text-center min-h-[80px]">
+                                <div className="text-gray-400 text-sm font-semibold mb-2">2nd Place</div>
+                                <div className="text-2xl font-bold text-white">$25,000</div>
+                              </div>
+                              <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
+                                <div className="text-orange-400 text-sm font-semibold mb-2">3rd Place</div>
+                                <div className="text-2xl font-bold text-white">$15,000</div>
+                              </div>
+                              <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur-sm rounded-xl p-4 border border-purple-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
+                                <div className="text-purple-400 text-sm font-semibold mb-2">+ More Prizes</div>
+                                <div className="text-2xl font-bold text-white">$10,000</div>
+                              </div>
+                            </>
+                          )}
                         </div>
 
                         <Button
                           variant="default"
                           className="bg-gradient-to-r from-[#00d4ff] to-[#0099cc] hover:from-[#00d4ff]/90 hover:to-[#0099cc]/90 text-black font-bold px-10 py-4 text-xl shadow-lg shadow-[#00d4ff]/30 transform hover:scale-105 transition-all duration-200"
-                          onClick={() => window.location.href = '/raffle/weeklyraffle0901'}
+                          onClick={handleEnterRaffle}
+                          disabled={!raffle}
                         >
                           Enter Weekly Raffle
                         </Button>
@@ -171,8 +288,10 @@ const CasinoHome: React.FC = () => {
                             <div className="text-[#00d4ff] text-sm font-semibold mb-3">
                               Time Remaining
                             </div>
-                            <div className="text-4xl font-bold text-white mb-2">4d 21h 26m</div>
-                            <div className="text-sm text-gray-400">Raffle ends Sunday at 11:59 PM EST</div>
+                            <div className="text-4xl font-bold text-white mb-2">{timeLeft || '4d 21h 26m'}</div>
+                            <div className="text-sm text-gray-400">
+                              {raffle ? `Raffle ends ${new Date(raffle.end_date).toLocaleDateString()}` : 'Raffle ends Sunday at 11:59 PM EST'}
+                            </div>
                           </div>
 
                           {/* Your stats */}
