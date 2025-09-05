@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
             isMod: profile.is_mod,
             isVip: profile.is_vip,
             isAdmin: profile.is_admin,
+            isBanned: profile.is_banned,
             level: profile.level,
             createdAt: profile.created_at,
             lastSignIn: authUser?.user?.last_sign_in_at || null,
@@ -83,6 +84,7 @@ export async function GET(request: NextRequest) {
             isMod: profile.is_mod,
             isVip: profile.is_vip,
             isAdmin: profile.is_admin,
+            isBanned: profile.is_banned,
             level: profile.level,
             createdAt: profile.created_at,
             lastSignIn: null,
@@ -224,6 +226,9 @@ export async function PATCH(request: NextRequest) {
         break
       case 'level':
         updateData.level = Math.max(1, Math.min(100, parseInt(value) || 1))
+        break
+      case 'is_banned':
+        updateData.is_banned = value
         break
       default:
         return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
