@@ -167,7 +167,7 @@ const CasinoHome: React.FC = () => {
                               {prize.place}{prize.place === 1 ? 'st' : prize.place === 2 ? 'nd' : prize.place === 3 ? 'rd' : 'th'} Place
                             </div>
                             <div className="text-lg font-bold text-white">
-                              ${(prize.amount / 1000).toFixed(0)}K
+                              {prize.amount >= 1000 ? `$${(prize.amount / 1000).toFixed(0)}K` : `$${prize.amount}`}
                             </div>
                           </div>
                         ))}
@@ -361,7 +361,7 @@ const CasinoHome: React.FC = () => {
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    🏆 {raffle ? `$${(raffle.total_prize / 1000).toFixed(0)}K Prize Pool` : '$100K Prize Pool'}
+                    🏆 {raffle ? `$${raffle.total_prize >= 1000 ? (raffle.total_prize / 1000).toFixed(0) + 'K' : raffle.total_prize} Prize Pool` : '$100K Prize Pool'}
                   </motion.div>
               </div>
             </div>
