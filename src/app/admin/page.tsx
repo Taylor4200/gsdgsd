@@ -241,7 +241,7 @@ const AdminPanel = () => {
   const fetchRaffles = async () => {
     try {
       console.log('🔄 Fetching raffles...')
-      const response = await fetch('/api/raffles?includeEnded=true')
+      const response = await fetch('/api/raffles?includeEnded=true&status=all')
       const data = await response.json()
       console.log('📊 Raffles response:', data)
       console.log('📊 Raffles array:', data.raffles)
