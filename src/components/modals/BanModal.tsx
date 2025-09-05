@@ -73,8 +73,8 @@ const BanModal: React.FC<BanModalProps> = ({ isOpen, onClose, targetUser, onBan 
                   <Ban className="h-5 w-5 text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Ban User</h3>
-                  <p className="text-sm text-gray-400">Ban {targetUser.username}</p>
+                  <h3 className="text-lg font-semibold text-white">Timeout User</h3>
+                  <p className="text-sm text-gray-400">Timeout {targetUser.username}</p>
                 </div>
               </div>
               <Button
@@ -91,7 +91,7 @@ const BanModal: React.FC<BanModalProps> = ({ isOpen, onClose, targetUser, onBan 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-300 mb-3">
                 <Clock className="h-4 w-4 inline mr-2" />
-                Ban Duration
+                Timeout Duration
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {durationOptions.map((option) => (
@@ -130,12 +130,12 @@ const BanModal: React.FC<BanModalProps> = ({ isOpen, onClose, targetUser, onBan 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-300 mb-3">
                 <AlertTriangle className="h-4 w-4 inline mr-2" />
-                Reason for Ban
+                Reason for Timeout
               </label>
               <Input
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Enter reason for ban..."
+                placeholder="Enter reason for timeout..."
                 className="bg-gray-800 border-gray-600 text-white"
                 maxLength={200}
               />
@@ -146,7 +146,7 @@ const BanModal: React.FC<BanModalProps> = ({ isOpen, onClose, targetUser, onBan 
 
             {/* Summary */}
             <div className="bg-gray-800/50 rounded-lg p-4 mb-6">
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Ban Summary</h4>
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Timeout Summary</h4>
               <div className="space-y-1 text-sm text-gray-400">
                 <p><span className="text-gray-300">User:</span> {targetUser.username}</p>
                 <p><span className="text-gray-300">Duration:</span> {getDurationText()}</p>
@@ -169,7 +169,7 @@ const BanModal: React.FC<BanModalProps> = ({ isOpen, onClose, targetUser, onBan 
                 disabled={!reason.trim() || isBanning || (selectedDuration === 'custom' && !customDuration.trim())}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
               >
-                {isBanning ? 'Banning...' : 'Ban User'}
+                {isBanning ? 'Timing out...' : 'Timeout User'}
               </Button>
             </div>
           </motion.div>

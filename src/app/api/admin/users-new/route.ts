@@ -254,6 +254,27 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
     }
 
+    // If this is a timeout/ban, send a system message
+    if (role === 'is_banned' && value === true && banDuration && banReason) {
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('username')
+        .eq('user_id', userId)
+        .single()
+
+      const durationText = banDuration === 'permanent' ? 'permanently' : `for ${banDuration}`
+      const systemMessage = `⚠️ ${userProfile?.username || 'User'} has been timed out ${durationText} for: ${banReason}`
+
+      await supabase
+        .from('chat_messages')
+        .insert({
+          user_id: userId,
+          username: 'System',
+          message: systemMessage,
+          message_type: 'system'
+        })
+    }
+
     console.log('✅ User profile updated successfully')
     return NextResponse.json({ success: true })
 

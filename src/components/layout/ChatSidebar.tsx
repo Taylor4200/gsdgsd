@@ -51,6 +51,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   const [showModMenu, setShowModMenu] = useState<string | null>(null)
   const [showBanModal, setShowBanModal] = useState(false)
   const [banTarget, setBanTarget] = useState<{userId: string, username: string} | null>(null)
+  const [timeoutNotification, setTimeoutNotification] = useState<{message: string, type: 'timeout'} | null>(null)
 
   // Initialize chat when user is available
   useEffect(() => {
@@ -310,6 +311,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
             )}
           </div>
 
+          {/* Timeout Notification */}
+          {timeoutNotification && (
+            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 mx-4 mb-2">
+              <div className="flex items-center space-x-2">
+                <Ban className="h-4 w-4 text-red-400" />
+                <p className="text-sm text-red-400 font-medium">{timeoutNotification.message}</p>
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             <AnimatePresence>
@@ -319,7 +330,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="flex items-start space-x-2 group hover:bg-gray-800/50 p-2 rounded-lg transition-colors"
+                  className={cn(
+                    "flex items-start space-x-2 group p-2 rounded-lg transition-colors",
+                    msg.message_type === 'system' 
+                      ? "bg-yellow-500/10 border border-yellow-500/20" 
+                      : "hover:bg-gray-800/50"
+                  )}
                 >
                   <div className="flex-shrink-0">
                     {getUserBadge(msg)}
@@ -344,7 +360,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                         {formatMessageTime(new Date(msg.created_at))}
                       </span>
                       {/* Admin Controls */}
-                      {user?.is_admin && (
+                      {user?.is_admin && msg.message_type !== 'system' && (
                         <div className="flex items-center space-x-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
                           {/* Stats Button */}
                           <Button
@@ -384,7 +400,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                                   className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
                                 >
                                   <Ban className="h-3 w-3 mr-2" />
-                                  Ban User
+                                  Timeout User
                                 </button>
                                 <button
                                   onClick={(e) => {
@@ -403,7 +419,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                       )}
                       
                       {/* Mod Controls (for mods only, not admins) */}
-                      {user?.is_mod && !user?.is_admin && (
+                      {user?.is_mod && !user?.is_admin && msg.message_type !== 'system' && (
                         <div className="relative ml-auto">
                           <Button
                             variant="ghost"
@@ -437,7 +453,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                                   className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
                                 >
                                   <Ban className="h-3 w-3 mr-2" />
-                                  Ban User
+                                  Timeout User
                                 </button>
                                 <button
                                   onClick={(e) => {
@@ -455,7 +471,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                         </div>
                       )}
                     </div>
-                    <p className="text-sm text-gray-200 mt-1 break-words">
+                    <p className={cn(
+                      "text-sm mt-1 break-words",
+                      msg.message_type === 'system' 
+                        ? "text-yellow-300 font-medium" 
+                        : "text-gray-200"
+                    )}>
                       {msg.message}
                     </p>
                   </div>
@@ -549,6 +570,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
               })
               
               if (response.ok) {
+                // Show timeout notification
+                const durationText = duration === 'permanent' ? 'permanently' : `for ${duration}`
+                const timeoutMessage = `${user?.username} timed out ${banTarget.username} ${durationText} for: ${reason}`
+                setTimeoutNotification({ message: timeoutMessage, type: 'timeout' })
+                
+                // Auto-hide notification after 5 seconds
+                setTimeout(() => {
+                  setTimeoutNotification(null)
+                }, 5000)
+                
                 setShowBanModal(false)
                 setBanTarget(null)
                 // Refresh messages
@@ -559,7 +590,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                 }
               }
             } catch (error) {
-              console.error('Ban failed:', error)
+              console.error('Timeout failed:', error)
             }
           }}
         />
