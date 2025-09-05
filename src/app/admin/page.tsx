@@ -244,6 +244,8 @@ const AdminPanel = () => {
       const response = await fetch('/api/raffles?includeEnded=true')
       const data = await response.json()
       console.log('📊 Raffles response:', data)
+      console.log('📊 Raffles array:', data.raffles)
+      console.log('📊 Raffles length:', data.raffles?.length)
       setRaffles(data.raffles || [])
     } catch (error) {
       console.error('❌ Error fetching raffles:', error)
