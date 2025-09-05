@@ -345,8 +345,67 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                       <span className="text-xs text-gray-500">
                         {formatMessageTime(new Date(msg.created_at))}
                       </span>
-                      {/* Mod Controls */}
-                      {user?.is_mod && (
+                      {/* Admin Controls */}
+                      {user?.is_admin && (
+                        <div className="flex items-center space-x-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                          {/* Stats Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleModAction('view_history', msg.id, msg.user_id, msg.username)
+                            }}
+                            className="h-6 px-2 text-xs text-blue-400 hover:text-blue-300"
+                          >
+                            Stats
+                          </Button>
+                          
+                          {/* Mod Controls Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowModMenu(showModMenu === msg.id ? null : msg.id)
+                            }}
+                            className="h-6 px-2 text-xs text-red-400 hover:text-red-300"
+                          >
+                            Mod
+                          </Button>
+                          
+                          {/* Mod Menu */}
+                          {showModMenu === msg.id && (
+                            <div className="absolute right-0 top-6 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 min-w-32">
+                              <div className="py-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleModAction('ban', msg.id, msg.user_id, msg.username)
+                                  }}
+                                  className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
+                                >
+                                  <Ban className="h-3 w-3 mr-2" />
+                                  Ban User
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleModAction('delete', msg.id, msg.user_id, msg.username)
+                                  }}
+                                  className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-2" />
+                                  Delete Message
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Mod Controls (for mods only, not admins) */}
+                      {user?.is_mod && !user?.is_admin && (
                         <div className="relative ml-auto">
                           <Button
                             variant="ghost"
