@@ -1,7 +1,7 @@
 -- Raffle System Database Schema
 -- Create raffles table
 CREATE TABLE IF NOT EXISTS raffles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
   description TEXT,
   total_prize DECIMAL(15,2) NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS raffles (
 
 -- Create raffle_prizes table
 CREATE TABLE IF NOT EXISTS raffle_prizes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   raffle_id UUID REFERENCES raffles(id) ON DELETE CASCADE,
   place INTEGER NOT NULL,
   amount DECIMAL(15,2) NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS raffle_prizes (
 
 -- Create raffle_game_multipliers table
 CREATE TABLE IF NOT EXISTS raffle_game_multipliers (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   raffle_id UUID REFERENCES raffles(id) ON DELETE CASCADE,
   game_id TEXT NOT NULL,
   game_name TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS raffle_game_multipliers (
 
 -- Create raffle_tickets table
 CREATE TABLE IF NOT EXISTS raffle_tickets (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   raffle_id UUID REFERENCES raffles(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   tickets_earned INTEGER NOT NULL DEFAULT 0,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS raffle_tickets (
 
 -- Create raffle_winners table
 CREATE TABLE IF NOT EXISTS raffle_winners (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   raffle_id UUID REFERENCES raffles(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   prize_id UUID REFERENCES raffle_prizes(id) ON DELETE CASCADE,
