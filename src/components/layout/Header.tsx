@@ -84,9 +84,9 @@ const Header: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                     className="glass px-3 py-1 rounded-lg"
                   >
-                    <div className="text-xs text-gray-400">Coins</div>
+                    <div className="text-xs text-gray-400">GC</div>
                     <div className="text-sm font-bold text-neon-blue">
-                      {formatCurrency(user.balance, 'coins')}
+                      {formatCurrency(user.gcBalance || 0, 'GC')}
                     </div>
                   </motion.div>
                   <motion.div
@@ -95,7 +95,7 @@ const Header: React.FC = () => {
                   >
                     <div className="text-xs text-gray-400">SC</div>
                     <div className="text-sm font-bold text-neon-purple">
-                      {formatCurrency(user.sweepstakesCoins, 'sweepstakes_coins')}
+                      {formatCurrency(user.sweepstakesCoins || user.balance || 0, 'SC')}
                     </div>
                   </motion.div>
                 </div>

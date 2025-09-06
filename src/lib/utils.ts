@@ -12,7 +12,7 @@ export type MotionProps<T> = T & {
 
 export function formatCurrency(
   amount: number,
-  currency: 'USD' | 'coins' | 'sweepstakes_coins' = 'USD',
+  currency: 'GC' | 'SC' | 'USD' | 'coins' | 'sweepstakes_coins' = 'USD',
   decimals: number = 2
 ): string {
   const formatter = new Intl.NumberFormat('en-US', {
@@ -23,8 +23,10 @@ export function formatCurrency(
   switch (currency) {
     case 'USD':
       return `$${formatter.format(amount)}`
+    case 'GC':
     case 'coins':
-      return `${formatter.format(amount)} Coins`
+      return `${formatter.format(amount)} GC`
+    case 'SC':
     case 'sweepstakes_coins':
       return `${formatter.format(amount)} SC`
     default:

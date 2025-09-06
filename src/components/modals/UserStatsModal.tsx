@@ -43,8 +43,8 @@ const UserStatsModal: React.FC<UserStatsModalProps> = ({ isOpen, onClose, userSt
       color: 'text-red-400'
     },
     {
-      label: 'Wagered',
-      value: formatCurrency(userStats.wagered, 'USD'),
+      label: 'Total Wagered',
+      value: formatCurrency(userStats.wagered, 'SC'),
       color: 'text-yellow-400',
       icon: <DollarSign className="h-4 w-4 text-green-400" />
     }
@@ -145,9 +145,8 @@ const UserStatsModal: React.FC<UserStatsModalProps> = ({ isOpen, onClose, userSt
                         className="w-full bg-[#2d3748] border border-[#4a5568] rounded-lg px-3 py-2 text-white text-sm appearance-none cursor-pointer"
                       >
                         <option value="All">All</option>
-                        <option value="USD">USD</option>
-                        <option value="BTC">BTC</option>
-                        <option value="ETH">ETH</option>
+                        <option value="GC">Gold Coins (GC)</option>
+                        <option value="SC">Sweepstakes Coins (SC)</option>
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     </div>

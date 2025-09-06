@@ -182,19 +182,19 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ isOpen, onToggle }) => {
                      <div className="bg-black/20 rounded-lg p-2">
                        <div className="text-xs text-gray-400">SC Balance</div>
                        <div className="text-sm font-bold text-[#00d4ff]">
-                         {formatCurrency(user.balance, 'USD')}
+                         {formatCurrency(user.sweepstakesCoins || user.balance || 0, 'SC')}
                        </div>
                      </div>
                      <div className="bg-black/20 rounded-lg p-2">
                        <div className="text-xs text-gray-400">GC Balance</div>
                        <div className="text-sm font-bold text-purple-400">
-                         {user.gcBalance || 0} GC
+                         {formatCurrency(user.gcBalance || 0, 'GC')}
                        </div>
                      </div>
                      <div className="bg-black/20 rounded-lg p-2">
-                       <div className="text-xs text-gray-400">Wagered</div>
+                       <div className="text-xs text-gray-400">Total Wagered</div>
                        <div className="text-sm font-bold text-green-400">
-                         {formatCurrency(user.totalWagered, 'USD')}
+                         {formatCurrency(user.totalWagered || 0, 'SC')}
                        </div>
                      </div>
                    </div>

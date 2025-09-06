@@ -207,15 +207,15 @@ const BalanceDropdown: React.FC<BalanceDropdownProps> = ({ isOpen, onToggle }) =
                   {/* Balance Cards */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-[#2d3748] rounded-lg p-3">
-                      <div className="text-xs text-gray-400 mb-1">Balance</div>
+                      <div className="text-xs text-gray-400 mb-1">GC Balance</div>
                       <div className="text-lg font-bold text-[#00d4ff]">
-                        {showBalance ? formatCurrency(user.balance, 'USD') : '****'}
+                        {showBalance ? formatCurrency(user.gcBalance || 0, 'GC') : '****'}
                       </div>
                     </div>
                     <div className="bg-[#2d3748] rounded-lg p-3">
                       <div className="text-xs text-gray-400 mb-1">SC Balance</div>
                       <div className="text-lg font-bold text-purple-400">
-                        {showBalance ? formatCurrency(user.sweepstakesCoins, 'sweepstakes_coins') : '****'}
+                        {showBalance ? formatCurrency(user.sweepstakesCoins || user.balance || 0, 'SC') : '****'}
                       </div>
                     </div>
                   </div>
