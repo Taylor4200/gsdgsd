@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -37,6 +37,8 @@ const LandingPage: React.FC = () => {
   const { setSignupModal } = useUIStore()
   const [email, setEmail] = useState('')
   const [isEmailSubmitted, setIsEmailSubmitted] = useState(false)
+  const [raffle, setRaffle] = useState<any>(null)
+  const [raffleLoading, setRaffleLoading] = useState(true)
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,6 +47,25 @@ const LandingPage: React.FC = () => {
       setTimeout(() => setIsEmailSubmitted(false), 3000)
     }
   }
+
+  // Fetch active raffle data
+  useEffect(() => {
+    const fetchRaffle = async () => {
+      try {
+        const response = await fetch('/api/raffles?active=true&limit=1')
+        const data = await response.json()
+        if (data.raffles && data.raffles.length > 0) {
+          setRaffle(data.raffles[0])
+        }
+      } catch (error) {
+        console.error('Error fetching raffle data:', error)
+      } finally {
+        setRaffleLoading(false)
+      }
+    }
+
+    fetchRaffle()
+  }, [])
 
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
@@ -153,7 +174,7 @@ const LandingPage: React.FC = () => {
               >
                 The future of social gaming.
                 <span className="text-cyan-400 font-semibold"> Play for FREE</span>,
-                compete for <span className="text-yellow-400 font-semibold">$100K prizes</span>.
+                compete for <span className="text-yellow-400 font-semibold">100K SC prizes</span>.
               </motion.p>
 
               <motion.div
@@ -196,7 +217,7 @@ const LandingPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-yellow-400" />
-                  <span>$5M+ Paid</span>
+                  <span>5M+ SC Paid</span>
                 </div>
               </motion.div>
             </motion.div>
@@ -225,25 +246,70 @@ const LandingPage: React.FC = () => {
                       <Crown className="w-10 h-10 text-black" />
                     </motion.div>
 
-                    <h3 className="text-2xl font-bold mb-4 text-white">Weekly Sweepstakes</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-white">
+                      {raffleLoading ? 'Weekly Sweepstakes' : (raffle?.title || 'Weekly Sweepstakes')}
+                    </h3>
                     <div className="text-6xl font-black text-transparent bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text mb-4">
-                      $100K
+                      {raffleLoading
+                        ? '100K SC'
+                        : raffle?.total_prize
+                          ? `${raffle.total_prize >= 1000 ? (raffle.total_prize / 1000).toFixed(0) + 'K' : raffle.total_prize} SC`
+                          : '100K SC'
+                      }
                     </div>
                     <p className="text-gray-300 mb-6">Earn tickets with every game you play</p>
 
                     <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-3 border border-yellow-500/30">
-                        <div className="text-yellow-400 text-sm font-semibold">1st Place</div>
-                        <div className="text-lg font-bold text-white">$50K</div>
-                      </div>
-                      <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-3 border border-gray-400/30">
-                        <div className="text-gray-400 text-sm font-semibold">2nd Place</div>
-                        <div className="text-lg font-bold text-white">$25K</div>
-                      </div>
-                      <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/30">
-                        <div className="text-orange-400 text-sm font-semibold">3rd Place</div>
-                        <div className="text-lg font-bold text-white">$15K</div>
-                      </div>
+                      {raffleLoading ? (
+                        <>
+                          <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-3 border border-yellow-500/30">
+                            <div className="text-yellow-400 text-sm font-semibold">1st Place</div>
+                            <div className="text-lg font-bold text-white">50K SC</div>
+                          </div>
+                          <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-3 border border-gray-400/30">
+                            <div className="text-gray-400 text-sm font-semibold">2nd Place</div>
+                            <div className="text-lg font-bold text-white">25K SC</div>
+                          </div>
+                          <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/30">
+                            <div className="text-orange-400 text-sm font-semibold">3rd Place</div>
+                            <div className="text-lg font-bold text-white">15K SC</div>
+                          </div>
+                        </>
+                      ) : (
+                        raffle?.raffle_prizes?.slice(0, 3).map((prize: any, index: number) => (
+                          <div key={prize.place} className={`bg-gradient-to-br ${
+                            index === 0 ? 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30' :
+                            index === 1 ? 'from-gray-400/20 to-gray-500/20 border-gray-400/30' :
+                            'from-orange-500/20 to-orange-600/20 border-orange-500/30'
+                          } backdrop-blur-sm rounded-xl p-3 border`}>
+                            <div className={`text-sm font-semibold ${
+                              index === 0 ? 'text-yellow-400' :
+                              index === 1 ? 'text-gray-400' :
+                              'text-orange-400'
+                            }`}>
+                              {prize.place}{prize.place === 1 ? 'st' : prize.place === 2 ? 'nd' : prize.place === 3 ? 'rd' : 'th'} Place
+                            </div>
+                            <div className="text-lg font-bold text-white">
+                              {prize.amount >= 1000 ? `${(prize.amount / 1000).toFixed(0)}K SC` : `${prize.amount} SC`}
+                            </div>
+                          </div>
+                        )) || (
+                          <>
+                            <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-3 border border-yellow-500/30">
+                              <div className="text-yellow-400 text-sm font-semibold">1st Place</div>
+                              <div className="text-lg font-bold text-white">50K SC</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-3 border border-gray-400/30">
+                              <div className="text-gray-400 text-sm font-semibold">2nd Place</div>
+                              <div className="text-lg font-bold text-white">25K SC</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/30">
+                              <div className="text-orange-400 text-sm font-semibold">3rd Place</div>
+                              <div className="text-lg font-bold text-white">15K SC</div>
+                            </div>
+                          </>
+                        )
+                      )}
                     </div>
 
                     <Button

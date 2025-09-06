@@ -146,7 +146,7 @@ const CasinoHome: React.FC = () => {
                   <div className="md:hidden">
                     <div className="text-center mb-6">
                       <h2 className="text-2xl font-bold text-white mb-3">
-                        {raffle ? raffle.title : '$100K Weekly Raffle'}
+                        {raffle ? raffle.title : '100K SC Weekly Raffle'}
                       </h2>
                       <p className="text-gray-300 text-base mb-6 leading-relaxed">
                         Earn tickets with every wager and compete for massive prizes! Join thousands of players in our biggest weekly event.
@@ -168,7 +168,7 @@ const CasinoHome: React.FC = () => {
                               {prize.place}{prize.place === 1 ? 'st' : prize.place === 2 ? 'nd' : prize.place === 3 ? 'rd' : 'th'} Place
                             </div>
                             <div className="text-lg font-bold text-white">
-                              {prize.amount >= 1000 ? `$${(prize.amount / 1000).toFixed(0)}K` : `$${prize.amount}`}
+                              {prize.amount >= 1000 ? `${(prize.amount / 1000).toFixed(0)}K SC` : `${prize.amount} SC`}
                             </div>
                           </div>
                         ))}
@@ -176,15 +176,15 @@ const CasinoHome: React.FC = () => {
                           <>
                             <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-3 border border-yellow-500/30 flex flex-col items-center justify-center text-center min-h-[60px]">
                               <div className="text-yellow-400 text-xs font-semibold mb-1">1st Place</div>
-                              <div className="text-lg font-bold text-white">$50K</div>
+                              <div className="text-lg font-bold text-white">50K SC</div>
                             </div>
                             <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-3 border border-gray-400/30 flex flex-col items-center justify-center text-center min-h-[60px]">
                               <div className="text-gray-400 text-xs font-semibold mb-1">2nd Place</div>
-                              <div className="text-lg font-bold text-white">$25K</div>
+                              <div className="text-lg font-bold text-white">25K SC</div>
                             </div>
                             <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-3 border border-orange-500/30 flex flex-col items-center justify-center text-center min-h-[60px]">
                               <div className="text-orange-400 text-xs font-semibold mb-1">3rd Place</div>
-                              <div className="text-lg font-bold text-white">$15K</div>
+                              <div className="text-lg font-bold text-white">15K SC</div>
                             </div>
                           </>
                         )}
@@ -220,7 +220,7 @@ const CasinoHome: React.FC = () => {
                       <div className="col-span-7">
                         <div className="mb-6">
                           <h2 className="text-4xl font-bold text-white mb-3">
-                            {raffle ? raffle.title : '$100,000 Weekly Raffle'}
+                            {raffle ? raffle.title : '100,000 SC Weekly Raffle'}
                           </h2>
                           <p className="text-gray-300 text-lg leading-relaxed">
                             Earn tickets with every wager and compete for massive prizes! Join thousands of players in our biggest weekly event.
@@ -245,7 +245,7 @@ const CasinoHome: React.FC = () => {
                                 {prize.place}{prize.place === 1 ? 'st' : prize.place === 2 ? 'nd' : prize.place === 3 ? 'rd' : 'th'} Place
                               </div>
                               <div className="text-2xl font-bold text-white">
-                                ${prize.amount.toLocaleString()}
+                                {prize.amount.toLocaleString()} SC
                               </div>
                             </div>
                           ))}
@@ -253,19 +253,19 @@ const CasinoHome: React.FC = () => {
                             <>
                               <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
                                 <div className="text-yellow-400 text-sm font-semibold mb-2">1st Place</div>
-                                <div className="text-2xl font-bold text-white">$50,000</div>
+                                <div className="text-2xl font-bold text-white">50,000 SC</div>
                               </div>
                               <div className="bg-gradient-to-br from-gray-400/20 to-gray-500/20 backdrop-blur-sm rounded-xl p-4 border border-gray-400/30 flex flex-col items-center justify-center text-center min-h-[80px]">
                                 <div className="text-gray-400 text-sm font-semibold mb-2">2nd Place</div>
-                                <div className="text-2xl font-bold text-white">$25,000</div>
+                                <div className="text-2xl font-bold text-white">25,000 SC</div>
                               </div>
                               <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
                                 <div className="text-orange-400 text-sm font-semibold mb-2">3rd Place</div>
-                                <div className="text-2xl font-bold text-white">$15,000</div>
+                                <div className="text-2xl font-bold text-white">15,000 SC</div>
                               </div>
                               <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur-sm rounded-xl p-4 border border-purple-500/30 flex flex-col items-center justify-center text-center min-h-[80px]">
                                 <div className="text-purple-400 text-sm font-semibold mb-2">+ More Prizes</div>
-                                <div className="text-2xl font-bold text-white">$10,000</div>
+                                <div className="text-2xl font-bold text-white">10,000 SC</div>
                               </div>
                             </>
                           )}
@@ -362,7 +362,7 @@ const CasinoHome: React.FC = () => {
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    🏆 {raffle ? `$${raffle.total_prize >= 1000 ? (raffle.total_prize / 1000).toFixed(0) + 'K' : raffle.total_prize} Prize Pool` : '$100K Prize Pool'}
+                    🏆 {raffle ? `${raffle.total_prize >= 1000 ? (raffle.total_prize / 1000).toFixed(0) + 'K' : raffle.total_prize} SC Prize Pool` : '100K SC Prize Pool'}
                   </motion.div>
               </div>
             </div>
