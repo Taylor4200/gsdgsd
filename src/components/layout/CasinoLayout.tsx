@@ -14,7 +14,7 @@ import LiveSupportWidget from '@/components/ui/LiveSupportWidget'
 import LiveStatsModal from '@/components/ui/LiveStatsModal'
 import MyBetsModal from '@/components/ui/MyBetsModal'
 import BetHistoryScroll from '@/components/ui/BetHistoryScroll'
-import StakeLiveFeed from '@/components/ui/StakeLiveFeed'
+import LiveFeed from '@/components/ui/StakeLiveFeed'
 import UserStatsModal from '@/components/modals/UserStatsModal'
 import { FriendsModal } from '@/components/modals/FriendsModal'
 import { LeaderboardsModal } from '@/components/modals/LeaderboardsModal'
@@ -230,7 +230,7 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
             {children}
           </div>
           <div className="px-4 md:px-6 pb-4">
-            <StakeLiveFeed />
+            <LiveFeed />
           </div>
           <LegalFooter />
         </div>
