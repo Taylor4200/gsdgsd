@@ -378,57 +378,16 @@ export class ChatService {
 
   async getUserStats(userId: string): Promise<any> {
     try {
-      // Get chat messages
-      const { data: messages, error: messagesError } = await supabase
-        .from('chat_messages')
-        .select('created_at, message_type')
-        .eq('user_id', userId)
-
-      if (messagesError) {
-        console.error('Error fetching user stats:', messagesError)
+      // Fetch real user stats from API
+      const response = await fetch(`/api/user-stats?userId=${userId}`)
+      
+      if (!response.ok) {
+        console.error('Error fetching user stats:', response.statusText)
         return null
       }
-
-      const totalMessages = messages.length
-      const firstMessage = messages.length > 0 ? new Date(Math.min(...messages.map(m => new Date(m.created_at).getTime()))) : null
-      const lastMessage = messages.length > 0 ? new Date(Math.max(...messages.map(m => new Date(m.created_at).getTime()))) : null
-
-      // Mock gaming statistics (in a real app, these would come from your gaming database)
-      const mockGamingStats = {
-        totalWagered: Math.floor(Math.random() * 100000) + 10000, // $10k - $110k
-        totalBets: Math.floor(Math.random() * 50000) + 5000, // 5k - 55k bets
-        totalWins: Math.floor(Math.random() * 20000) + 2000, // 2k - 22k wins
-        totalLosses: Math.floor(Math.random() * 30000) + 3000, // 3k - 33k losses
-        averageWager: Math.floor(Math.random() * 50) + 5, // $5 - $55
-        biggestWin: Math.floor(Math.random() * 5000) + 500, // $500 - $5.5k
-        biggestLoss: Math.floor(Math.random() * 2000) + 200, // $200 - $2.2k
-        winRate: Math.floor(Math.random() * 40) + 30, // 30% - 70%
-        totalTipped: Math.floor(Math.random() * 1000) + 100, // $100 - $1.1k
-        currentStreak: Math.floor(Math.random() * 20) - 10, // -10 to +10
-        longestWinStreak: Math.floor(Math.random() * 50) + 5, // 5 - 55
-        longestLossStreak: Math.floor(Math.random() * 30) + 3, // 3 - 33
-        favoriteGame: ['Limbo', 'Dice', 'Mines', 'Blackjack', 'Baccarat', 'Crash'][Math.floor(Math.random() * 6)],
-        lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Within last week
-        accountAge: Math.floor(Math.random() * 365) + 30, // 30 - 395 days
-        vipLevel: Math.floor(Math.random() * 5), // 0 - 4
-        totalDeposits: Math.floor(Math.random() * 50000) + 5000, // $5k - $55k
-        totalWithdrawals: Math.floor(Math.random() * 40000) + 4000, // $4k - $44k
-        netProfit: Math.floor(Math.random() * 20000) - 10000, // -$10k to +$10k
-      }
-
-      return {
-        // Chat stats
-        totalMessages,
-        firstMessage,
-        lastMessage,
-        messageTypes: messages.reduce((acc, msg) => {
-          acc[msg.message_type] = (acc[msg.message_type] || 0) + 1
-          return acc
-        }, {} as Record<string, number>),
-        
-        // Gaming stats
-        ...mockGamingStats
-      }
+      
+      const data = await response.json()
+      return data.stats
     } catch (error) {
       console.error('Error fetching user stats:', error)
       return null
