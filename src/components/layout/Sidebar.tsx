@@ -20,7 +20,10 @@ import {
   Target,
   Crown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  MessageCircle,
+  Award,
+  Eye
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
@@ -40,8 +43,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse, isMobi
     { icon: TrendingUp, label: 'Live', href: '/live', count: 7783 },
     { icon: Gamepad2, label: 'Originals', href: '/originals' },
     { icon: Star, label: 'Favorites', href: '/favorites' },
+    { icon: Users, label: 'Friends', href: '/friends', badge: 'NEW' },
+    { icon: Trophy, label: 'Leaderboards', href: '/leaderboards' },
+    { icon: Award, label: 'Achievements', href: '/achievements' },
+    { icon: Eye, label: 'Social Betting', href: '/social-betting' },
     { icon: Gift, label: 'Promotions', href: '/promotions', badge: 'NEW' },
-    { icon: Trophy, label: 'VIP Club', href: '/vip' },
+    { icon: Crown, label: 'VIP Club', href: '/vip' },
     { icon: Users, label: 'Refer', href: '/referrals', badge: 'EARN' },
     { icon: Target, label: 'Challenges', href: '/challenges' },
     { icon: Crown, label: 'Rewards', href: '/rewards' },
