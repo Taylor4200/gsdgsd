@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import AutoFillInput from '@/components/ui/AutoFillInput'
 import { useUserStore } from '@/store/userStore'
 import { Friend, FriendRequest } from '@/types/social'
 import { formatTime } from '@/lib/utils'
@@ -39,11 +40,11 @@ const FriendsListCompact: React.FC<FriendsListCompactProps> = ({ onSelectFriend 
     friend.friend_profile?.username.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleAddFriend = async () => {
-    if (!newFriendUsername.trim()) return
+  const handleAddFriend = async (username: string) => {
+    if (!username.trim()) return
     
     setIsAddingFriend(true)
-    const result = await addFriend(newFriendUsername.trim())
+    const result = await addFriend(username.trim())
     
     if (result.success) {
       setNewFriendUsername('')
@@ -53,6 +54,10 @@ const FriendsListCompact: React.FC<FriendsListCompactProps> = ({ onSelectFriend 
     }
     
     setIsAddingFriend(false)
+  }
+
+  const handleSelectUser = (username: string) => {
+    setNewFriendUsername(username)
   }
 
   const handleAcceptRequest = async (friendId: string) => {
@@ -95,30 +100,34 @@ const FriendsListCompact: React.FC<FriendsListCompactProps> = ({ onSelectFriend 
               exit={{ opacity: 0, height: 0 }}
               className="mb-3"
             >
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter username..."
+              <div className="space-y-2">
+                <AutoFillInput
+                  placeholder="Search and add friend..."
                   value={newFriendUsername}
-                  onChange={(e) => setNewFriendUsername(e.target.value)}
-                  className="flex-1 text-sm"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddFriend()}
+                  onChange={setNewFriendUsername}
+                  onSelect={handleSelectUser}
+                  onAdd={handleAddFriend}
+                  disabled={isAddingFriend}
+                  className="text-sm"
                 />
-                <Button
-                  onClick={handleAddFriend}
-                  disabled={isAddingFriend || !newFriendUsername.trim()}
-                  size="sm"
-                  className="bg-green-500 hover:bg-green-600 text-xs px-2 py-1"
-                >
-                  {isAddingFriend ? 'Adding...' : 'Add'}
-                </Button>
-                <Button
-                  onClick={() => setShowAddFriend(false)}
-                  size="sm"
-                  variant="outline"
-                  className="text-xs px-2 py-1"
-                >
-                  Cancel
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleAddFriend(newFriendUsername)}
+                    disabled={isAddingFriend || !newFriendUsername.trim()}
+                    size="sm"
+                    className="bg-green-500 hover:bg-green-600 text-xs px-2 py-1"
+                  >
+                    {isAddingFriend ? 'Adding...' : 'Add Friend'}
+                  </Button>
+                  <Button
+                    onClick={() => setShowAddFriend(false)}
+                    size="sm"
+                    variant="outline"
+                    className="text-xs px-2 py-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </motion.div>
           )}

@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import AutoFillInput from '@/components/ui/AutoFillInput'
 import { useUserStore } from '@/store/userStore'
 import { Friend, FriendRequest } from '@/types/social'
 import { formatTime, formatCurrency } from '@/lib/utils'
@@ -70,11 +71,11 @@ const FriendsListFull: React.FC<FriendsListFullProps> = ({ onSelectFriend }) => 
     return sortOrder === 'asc' ? comparison : -comparison
   })
 
-  const handleAddFriend = async () => {
-    if (!newFriendUsername.trim()) return
+  const handleAddFriend = async (username: string) => {
+    if (!username.trim()) return
     
     setIsAddingFriend(true)
-    const result = await addFriend(newFriendUsername.trim())
+    const result = await addFriend(username.trim())
     
     if (result.success) {
       setNewFriendUsername('')
@@ -84,6 +85,10 @@ const FriendsListFull: React.FC<FriendsListFullProps> = ({ onSelectFriend }) => 
     }
     
     setIsAddingFriend(false)
+  }
+
+  const handleSelectUser = (username: string) => {
+    setNewFriendUsername(username)
   }
 
   const handleAcceptRequest = async (friendId: string) => {
@@ -146,27 +151,30 @@ const FriendsListFull: React.FC<FriendsListFullProps> = ({ onSelectFriend }) => 
                   <CardTitle className="text-white">Add New Friend</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-3">
-                    <Input
-                      placeholder="Enter username..."
+                  <div className="space-y-3">
+                    <AutoFillInput
+                      placeholder="Search and add friend..."
                       value={newFriendUsername}
-                      onChange={(e) => setNewFriendUsername(e.target.value)}
-                      className="flex-1"
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddFriend()}
+                      onChange={setNewFriendUsername}
+                      onSelect={handleSelectUser}
+                      onAdd={handleAddFriend}
+                      disabled={isAddingFriend}
                     />
-                    <Button
-                      onClick={handleAddFriend}
-                      disabled={isAddingFriend || !newFriendUsername.trim()}
-                      className="bg-green-500 hover:bg-green-600"
-                    >
-                      {isAddingFriend ? 'Adding...' : 'Add Friend'}
-                    </Button>
-                    <Button
-                      onClick={() => setShowAddFriend(false)}
-                      variant="outline"
-                    >
-                      Cancel
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => handleAddFriend(newFriendUsername)}
+                        disabled={isAddingFriend || !newFriendUsername.trim()}
+                        className="bg-green-500 hover:bg-green-600"
+                      >
+                        {isAddingFriend ? 'Adding...' : 'Add Friend'}
+                      </Button>
+                      <Button
+                        onClick={() => setShowAddFriend(false)}
+                        variant="outline"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

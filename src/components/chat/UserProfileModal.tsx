@@ -15,13 +15,17 @@ import {
   MessageSquare,
   AlertTriangle,
   Calendar,
-  BarChart3
+  BarChart3,
+  UserPlus,
+  Check,
+  X as XIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { ChatService } from '@/lib/chatService'
 import type { ChatMessage } from '@/lib/chatService'
 import { cn } from '@/lib/utils'
+import { useUserStore } from '@/store/userStore'
 
 interface UserProfileModalProps {
   isOpen: boolean
@@ -48,6 +52,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   currentUser, 
   chatService 
 }) => {
+  const { addFriend, friends, friendRequests } = useUserStore()
   const [activeTab, setActiveTab] = useState<'overview' | 'messages' | 'bans'>('overview')
   const [messageHistory, setMessageHistory] = useState<ChatMessage[]>([])
   const [banHistory, setBanHistory] = useState<any[]>([])
@@ -58,6 +63,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [isBanning, setIsBanning] = useState(false)
   const [isUnbanning, setIsUnbanning] = useState(false)
   const [isDeletingMessage, setIsDeletingMessage] = useState<string | null>(null)
+  const [isAddingFriend, setIsAddingFriend] = useState(false)
+  const [friendStatus, setFriendStatus] = useState<'none' | 'friends' | 'pending' | 'requested'>('none')
 
   const isAdmin = currentUser.is_mod || currentUser.is_admin
   const isOwnProfile = user.id === currentUser.id
@@ -65,8 +72,34 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       loadUserData()
+      checkFriendStatus()
     }
   }, [isOpen, user.id])
+
+  const checkFriendStatus = () => {
+    // Check if users are already friends
+    const isFriend = friends.some(friend => friend.friend_id === user.id)
+    if (isFriend) {
+      setFriendStatus('friends')
+      return
+    }
+
+    // Check if there's a pending request from this user
+    const hasPendingRequest = friendRequests.some(request => request.friend_id === user.id)
+    if (hasPendingRequest) {
+      setFriendStatus('pending')
+      return
+    }
+
+    // Check if current user has sent a request to this user
+    const hasSentRequest = friendRequests.some(request => request.user_id === currentUser.id && request.friend_id === user.id)
+    if (hasSentRequest) {
+      setFriendStatus('requested')
+      return
+    }
+
+    setFriendStatus('none')
+  }
 
   const loadUserData = async () => {
     setIsLoading(true)
@@ -170,6 +203,27 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }
   }
 
+  const handleAddFriend = async () => {
+    if (friendStatus !== 'none') return
+    
+    setIsAddingFriend(true)
+    try {
+      const result = await addFriend(user.username)
+      
+      if (result.success) {
+        setFriendStatus('requested')
+        // Show success message
+      } else {
+        // Show error message
+        console.error(result.message)
+      }
+    } catch (error) {
+      console.error('Error adding friend:', error)
+    } finally {
+      setIsAddingFriend(false)
+    }
+  }
+
   const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
@@ -230,14 +284,61 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <div className="flex items-center space-x-2">
               {!isOwnProfile && (
                 <>
+                  {/* Friend Status Button */}
+                  {friendStatus === 'none' && (
+                    <Button
+                      onClick={handleAddFriend}
+                      disabled={isAddingFriend}
+                      size="sm"
+                      className="bg-[#00d4ff] hover:bg-[#00b8e6] text-black"
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      {isAddingFriend ? 'Adding...' : 'Add Friend'}
+                    </Button>
+                  )}
+                  
+                  {friendStatus === 'friends' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-green-500 text-green-400"
+                    >
+                      <UserCheck className="h-4 w-4 mr-2" />
+                      Friends
+                    </Button>
+                  )}
+                  
+                  {friendStatus === 'pending' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-yellow-500 text-yellow-400"
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      Pending
+                    </Button>
+                  )}
+                  
+                  {friendStatus === 'requested' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-500 text-blue-400"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Request Sent
+                    </Button>
+                  )}
+
                   <Button
                     variant="outline"
                     size="sm"
                     className="border-gray-600 text-gray-300 hover:bg-gray-700"
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    Tip
+                    Message
                   </Button>
+                  
                   <Button
                     variant="outline"
                     size="sm"
