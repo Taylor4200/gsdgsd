@@ -49,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onOpenSocialBetting
 }) => {
   const pathname = usePathname()
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['social']))
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   
   const mainItems = [
     { icon: Home, label: 'Home', href: '/' },
