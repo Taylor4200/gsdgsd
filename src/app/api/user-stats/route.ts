@@ -30,14 +30,51 @@ export async function GET(request: NextRequest) {
         last_active,
         created_at,
         total_messages,
-        achievements_count
+        achievements_count,
+        is_vip,
+        is_mod,
+        is_admin
       `)
       .eq('user_id', userId)
       .single()
 
+    let userProfile = profile
     if (profileError) {
       console.error('Error fetching user profile:', profileError)
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      
+      // If user doesn't exist in user_profiles, try to create them
+      const { data: authUser } = await supabase.auth.admin.getUserById(userId)
+      if (authUser?.user) {
+        // Create user profile with default stats
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: userId,
+            username: authUser.user.email?.split('@')[0] || 'User',
+            level: 1,
+            total_wagered: 0,
+            total_won: 0,
+            games_played: 0,
+            win_rate: 0,
+            vip_tier: 0,
+            is_online: true,
+            last_active: new Date().toISOString(),
+            is_vip: false,
+            is_mod: false,
+            is_admin: false
+          })
+          .select()
+          .single()
+
+        if (createError) {
+          console.error('Error creating user profile:', createError)
+          return NextResponse.json({ error: 'User not found' }, { status: 404 })
+        }
+
+        userProfile = newProfile
+      } else {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
     }
 
     // Get recent game sessions for additional stats
@@ -93,25 +130,25 @@ export async function GET(request: NextRequest) {
       : 'None'
 
     // Calculate account age
-    const accountAge = profile.created_at 
-      ? Math.floor((Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    const accountAge = userProfile.created_at 
+      ? Math.floor((Date.now() - new Date(userProfile.created_at).getTime()) / (1000 * 60 * 60 * 24))
       : 0
 
     const userStats = {
       // Basic profile data
-      username: profile.username,
-      level: profile.level || 1,
-      vipLevel: profile.vip_tier || 0,
-      isOnline: profile.is_online || false,
-      lastActive: profile.last_active || new Date(),
+      username: userProfile.username,
+      level: userProfile.level || 1,
+      vipLevel: userProfile.vip_tier || 0,
+      isOnline: userProfile.is_online || false,
+      lastActive: userProfile.last_active || new Date(),
       
       // Wagering stats
-      totalWagered: profile.total_wagered || 0,
-      totalWon: profile.total_won || 0,
+      totalWagered: userProfile.total_wagered || 0,
+      totalWon: userProfile.total_won || 0,
       totalBets: totalBets,
       totalWins: totalWins,
       totalLosses: totalLosses,
-      winRate: profile.win_rate || (totalBets > 0 ? (totalWins / totalBets) * 100 : 0),
+      winRate: userProfile.win_rate || (totalBets > 0 ? (totalWins / totalBets) * 100 : 0),
       
       // Additional stats
       averageWager: averageWager,
@@ -124,13 +161,13 @@ export async function GET(request: NextRequest) {
       accountAge: accountAge,
       
       // Social stats
-      totalMessages: profile.total_messages || 0,
-      achievementsCount: profile.achievements_count || 0,
+      totalMessages: userProfile.total_messages || 0,
+      achievementsCount: userProfile.achievements_count || 0,
       
       // Mock additional stats (for now)
       totalDeposits: Math.floor(Math.random() * 50000) + 5000,
       totalWithdrawals: Math.floor(Math.random() * 40000) + 4000,
-      netProfit: (profile.total_won || 0) - (profile.total_wagered || 0),
+      netProfit: (userProfile.total_won || 0) - (userProfile.total_wagered || 0),
     }
 
     return NextResponse.json({ stats: userStats })
