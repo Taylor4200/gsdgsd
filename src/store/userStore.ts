@@ -7,6 +7,7 @@ import {
   PrivateMessage, 
   Conversation, 
   UserAchievement, 
+  AchievementDefinition,
   LeaderboardEntry, 
   SocialBettingSession, 
   SocialNotification,
@@ -30,6 +31,7 @@ interface UserState {
   conversations: Conversation[]
   unreadMessages: number
   socialAchievements: UserAchievement[]
+  achievementDefinitions: AchievementDefinition[]
   leaderboards: LeaderboardEntry[]
   socialBettingSessions: SocialBettingSession[]
   socialNotifications: SocialNotification[]
@@ -63,6 +65,7 @@ interface UserState {
   markNotificationAsRead: (notificationId: string) => void
   clearAllNotifications: () => void
   refreshSocialData: () => Promise<void>
+  fetchAchievementDefinitions: () => Promise<void>
 }
 
 export const useUserStore = create<UserState>()(
@@ -83,6 +86,7 @@ export const useUserStore = create<UserState>()(
       conversations: [],
       unreadMessages: 0,
       socialAchievements: [],
+      achievementDefinitions: [],
       leaderboards: [],
       socialBettingSessions: [],
       socialNotifications: [],
@@ -405,10 +409,24 @@ export const useUserStore = create<UserState>()(
             conversations: messagesData.conversations || [],
             unreadMessages: messagesData.unread_count || 0,
             socialAchievements: achievementsData.achievements || [],
+            achievementDefinitions: achievementsData.definitions || [],
             leaderboards: leaderboardsData.entries || []
           })
         } catch (error) {
           console.error('Error refreshing social data:', error)
+        }
+      },
+
+      fetchAchievementDefinitions: async () => {
+        try {
+          const response = await fetch('/api/achievements')
+          const data = await response.json()
+          
+          set({
+            achievementDefinitions: data.definitions || []
+          })
+        } catch (error) {
+          console.error('Error fetching achievement definitions:', error)
         }
       },
 

@@ -60,7 +60,7 @@ export interface UserAchievement {
   achievement_description: string
   achievement_icon: string
   achievement_rarity: 'common' | 'rare' | 'epic' | 'legendary'
-  unlocked_at: Date
+  unlocked_at?: Date
   progress: number
   max_progress: number
   is_completed: boolean

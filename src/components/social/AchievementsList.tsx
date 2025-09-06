@@ -24,15 +24,53 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { useUserStore } from '@/store/userStore'
 import { UserAchievement, AchievementDefinition } from '@/types/social'
 import { formatTime } from '@/lib/utils'
+import { useEffect } from 'react'
 
 interface AchievementsListProps {
   onAchievementClick?: (achievement: UserAchievement) => void
 }
 
 const AchievementsList: React.FC<AchievementsListProps> = ({ onAchievementClick }) => {
-  const { socialAchievements } = useUserStore()
+  const { socialAchievements, achievementDefinitions, fetchAchievementDefinitions } = useUserStore()
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedRarity, setSelectedRarity] = useState<string>('all')
+
+  // Fetch achievement definitions on component mount
+  useEffect(() => {
+    if (achievementDefinitions.length === 0) {
+      fetchAchievementDefinitions()
+    }
+  }, [achievementDefinitions.length, fetchAchievementDefinitions])
+
+  // Create a map of unlocked achievements for quick lookup
+  const unlockedAchievementsMap = new Map(
+    socialAchievements.map(achievement => [achievement.achievement_id, achievement])
+  )
+
+  // Combine all achievements (unlocked + locked definitions)
+  const allAchievements = achievementDefinitions.map(definition => {
+    const unlockedAchievement = unlockedAchievementsMap.get(definition.id)
+    
+    if (unlockedAchievement) {
+      // Return the unlocked achievement
+      return unlockedAchievement
+    } else {
+      // Create a locked achievement from the definition
+      return {
+        id: `locked-${definition.id}`,
+        user_id: '',
+        achievement_id: definition.id,
+        achievement_name: definition.name,
+        achievement_description: definition.description,
+        achievement_icon: definition.icon,
+        achievement_rarity: definition.rarity,
+        unlocked_at: undefined,
+        progress: 0,
+        max_progress: definition.requirements.value,
+        is_completed: false
+      } as UserAchievement
+    }
+  })
 
   const categories = [
     { id: 'all', name: 'All', icon: Award },
@@ -50,14 +88,18 @@ const AchievementsList: React.FC<AchievementsListProps> = ({ onAchievementClick 
     { id: 'legendary', name: 'Legendary', color: 'text-yellow-400' }
   ]
 
-  const filteredAchievements = socialAchievements.filter(achievement => {
-    const categoryMatch = selectedCategory === 'all' || achievement.achievement_rarity === selectedCategory
+  const filteredAchievements = allAchievements.filter(achievement => {
+    // Get the achievement definition to access the category
+    const definition = achievementDefinitions.find(def => def.id === achievement.achievement_id)
+    const categoryMatch = selectedCategory === 'all' || definition?.category === selectedCategory
     const rarityMatch = selectedRarity === 'all' || achievement.achievement_rarity === selectedRarity
     return categoryMatch && rarityMatch
   })
 
   const achievementsByCategory = filteredAchievements.reduce((acc, achievement) => {
-    const category = achievement.achievement_rarity
+    // Get the achievement definition to access the category
+    const definition = achievementDefinitions.find(def => def.id === achievement.achievement_id)
+    const category = definition?.category || 'special'
     if (!acc[category]) acc[category] = []
     acc[category].push(achievement)
     return acc
@@ -100,7 +142,7 @@ const AchievementsList: React.FC<AchievementsListProps> = ({ onAchievementClick 
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white flex items-center">
             <Trophy className="h-5 w-5 mr-2 text-[#00d4ff]" />
-            Achievements ({socialAchievements.length})
+            Achievements ({allAchievements.length})
           </h3>
         </div>
 
@@ -164,12 +206,16 @@ const AchievementsList: React.FC<AchievementsListProps> = ({ onAchievementClick 
           </div>
         ) : (
           <div className="space-y-6">
-            {Object.entries(achievementsByCategory).map(([rarity, achievements]) => (
-              <div key={rarity}>
+            {Object.entries(achievementsByCategory).map(([category, achievements]) => (
+              <div key={category}>
                 <div className="flex items-center space-x-2 mb-4">
-                  {getRarityIcon(rarity)}
-                  <h4 className={`text-lg font-medium capitalize ${getRarityColor(rarity)}`}>
-                    {rarity} Achievements ({achievements.length})
+                  {(() => {
+                    const categoryInfo = categories.find(c => c.id === category)
+                    const IconComponent = categoryInfo?.icon
+                    return IconComponent ? <IconComponent className="h-5 w-5 text-[#00d4ff]" /> : null
+                  })()}
+                  <h4 className="text-lg font-medium capitalize text-white">
+                    {categories.find(c => c.id === category)?.name || category} Achievements ({achievements.length})
                   </h4>
                 </div>
                 
@@ -199,6 +245,7 @@ interface AchievementCardProps {
 const AchievementCard: React.FC<AchievementCardProps> = ({ achievement, onClick }) => {
   const progressPercentage = (achievement.progress / achievement.max_progress) * 100
   const isCompleted = achievement.is_completed
+  const isLocked = achievement.id.startsWith('locked-')
 
   const getRarityIcon = (rarity: string) => {
     switch (rarity) {
@@ -239,6 +286,8 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement, onClick 
         className={`cursor-pointer transition-all duration-200 ${
           isCompleted 
             ? `${getRarityBgColor(achievement.achievement_rarity)} border-2 border-[#00d4ff]/50` 
+            : isLocked
+            ? 'bg-[#1a2c38]/50 border-[#2d3748]/50 opacity-60'
             : 'bg-[#1a2c38] border-[#2d3748] hover:border-[#00d4ff]/30'
         }`}
         onClick={onClick}
@@ -248,7 +297,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement, onClick 
           <div className="flex items-start justify-between mb-3">
             <div className={`p-2 rounded-lg ${getRarityBgColor(achievement.achievement_rarity)}`}>
               <div className={getRarityColor(achievement.achievement_rarity)}>
-                {getRarityIcon(achievement.achievement_rarity)}
+                {isLocked ? <Lock className="h-6 w-6" /> : getRarityIcon(achievement.achievement_rarity)}
               </div>
             </div>
             
@@ -256,6 +305,13 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement, onClick 
               <div className="flex items-center space-x-1 text-green-400">
                 <CheckCircle className="h-5 w-5" />
                 <span className="text-xs font-medium">Unlocked</span>
+              </div>
+            )}
+            
+            {isLocked && (
+              <div className="flex items-center space-x-1 text-gray-500">
+                <Lock className="h-5 w-5" />
+                <span className="text-xs font-medium">Locked</span>
               </div>
             )}
           </div>
@@ -274,7 +330,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement, onClick 
             {!isCompleted && (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-gray-400">
-                  <span>Progress</span>
+                  <span>{isLocked ? 'Requirement' : 'Progress'}</span>
                   <span>{achievement.progress}/{achievement.max_progress}</span>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-2">
@@ -285,11 +341,16 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement, onClick 
                     transition={{ duration: 0.5 }}
                   />
                 </div>
+                {isLocked && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Complete the requirement to unlock this achievement
+                  </p>
+                )}
               </div>
             )}
 
             {/* Unlocked Date */}
-            {isCompleted && (
+            {isCompleted && achievement.unlocked_at && (
               <div className="flex items-center space-x-1 text-xs text-gray-400">
                 <Calendar className="h-3 w-3" />
                 <span>Unlocked {formatTime(achievement.unlocked_at)}</span>
