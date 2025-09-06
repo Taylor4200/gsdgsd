@@ -72,9 +72,8 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
 
       if (activeTab === 'my_bets' && user?.id) {
         url += `&user_id=${user.id}`
-      } else if (activeTab === 'high_rollers') {
-        url += '&featured=true'
       }
+      // High rollers will be filtered on frontend based on amount
 
       const response = await fetch(url)
       const data = await response.json()
@@ -254,7 +253,7 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
                       } else if (activeTab === 'all_bets') {
                         return bet.user_id !== user?.id
                       } else if (activeTab === 'high_rollers') {
-                        return bet.is_featured && bet.user_id !== user?.id
+                        return (bet.bet_amount >= 500 || bet.win_amount >= 500) && bet.user_id !== user?.id
                       }
                       return true
                     })
