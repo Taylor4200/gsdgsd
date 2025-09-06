@@ -137,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 py-4 overflow-y-auto">
+      <div className="flex-1 py-4 overflow-hidden">
         <nav className="space-y-2">
           {/* Main Items */}
           {mainItems.map((item) => {
@@ -202,9 +202,96 @@ const Sidebar: React.FC<SidebarProps> = ({
             )
           })}
 
+          {/* Social Section */}
+          {!collapsed && (
+            <div className="mt-4">
+              <button
+                onClick={() => toggleSection('social')}
+                className="flex items-center w-full px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-white transition-colors"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Social
+                <ChevronDown className={cn(
+                  "h-4 w-4 ml-auto transition-transform duration-200",
+                  expandedSections.has('social') ? 'rotate-180' : ''
+                )} />
+              </button>
+              
+              <AnimatePresence>
+                {expandedSections.has('social') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="ml-4 mt-1 space-y-1">
+                      {socialItems.map((item) => {
+                        return (
+                          <motion.button
+                            key={item.label}
+                            onClick={item.onClick}
+                            whileHover={{ x: 4 }}
+                            className={cn(
+                              'flex items-center px-4 py-2 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
+                              'text-gray-300 hover:text-white hover:bg-white/5'
+                            )}
+                          >
+                            <item.icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="ml-3 truncate">{item.label}</span>
+                            
+                            {item.badge && (
+                              <span className={`ml-auto text-xs px-2 py-1 rounded-full font-bold ${
+                                item.badge === 'EARN' 
+                                  ? 'bg-green-500 text-black' 
+                                  : 'bg-[#00d4ff] text-black'
+                              }`}>
+                                {item.badge}
+                              </span>
+                            )}
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
           {/* Collapsed state - show all items flat */}
           {collapsed && (
             <>
+              {socialItems.map((item) => {
+                return (
+                  <motion.button
+                    key={item.label}
+                    onClick={item.onClick}
+                    whileHover={{ x: 0 }}
+                    className={cn(
+                      'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
+                      'text-gray-300 hover:text-white hover:bg-white/5'
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    
+                    {/* Enhanced Tooltip for collapsed state */}
+                    <div className="absolute left-full ml-2 px-3 py-2 bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg border border-white/10">
+                      <div className="font-medium">{item.label}</div>
+                      {item.badge && (
+                        <div className={`text-xs mt-1 px-1 py-0.5 rounded ${
+                          item.badge === 'EARN' 
+                            ? 'bg-green-500 text-black' 
+                            : 'bg-[#00d4ff] text-black'
+                        }`}>
+                          {item.badge}
+                        </div>
+                      )}
+                    </div>
+                  </motion.button>
+                )
+              })}
             </>
           )}
         </nav>
@@ -244,99 +331,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
       </div>
-
-      {/* Social Section - Moved to Bottom */}
-      {!collapsed && (
-        <div className="border-t border-[#2d3748] py-4">
-          <button
-            onClick={() => toggleSection('social')}
-            className="flex items-center w-full px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-white transition-colors"
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Social
-            <ChevronDown className={cn(
-              "h-4 w-4 ml-auto transition-transform duration-200",
-              expandedSections.has('social') ? 'rotate-180' : ''
-            )} />
-          </button>
-          
-          <AnimatePresence>
-            {expandedSections.has('social') && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="ml-4 mt-1 space-y-1">
-                  {socialItems.map((item) => {
-                    return (
-                      <motion.button
-                        key={item.label}
-                        onClick={item.onClick}
-                        whileHover={{ x: 4 }}
-                        className={cn(
-                          'flex items-center px-4 py-2 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
-                          'text-gray-300 hover:text-white hover:bg-white/5'
-                        )}
-                      >
-                        <item.icon className="h-4 w-4 flex-shrink-0" />
-                        <span className="ml-3 truncate">{item.label}</span>
-                        
-                        {item.badge && (
-                          <span className={`ml-auto text-xs px-2 py-1 rounded-full font-bold ${
-                            item.badge === 'EARN' 
-                              ? 'bg-green-500 text-black' 
-                              : 'bg-[#00d4ff] text-black'
-                          }`}>
-                            {item.badge}
-                          </span>
-                        )}
-                      </motion.button>
-                    )
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {/* Collapsed state - show social items flat */}
-      {collapsed && (
-        <div className="border-t border-[#2d3748] py-4">
-          {socialItems.map((item) => {
-            return (
-              <motion.button
-                key={item.label}
-                onClick={item.onClick}
-                whileHover={{ x: 0 }}
-                className={cn(
-                  'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
-                  'text-gray-300 hover:text-white hover:bg-white/5'
-                )}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                
-                {/* Enhanced Tooltip for collapsed state */}
-                <div className="absolute left-full ml-2 px-3 py-2 bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg border border-white/10">
-                  <div className="font-medium">{item.label}</div>
-                  {item.badge && (
-                    <div className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                      item.badge === 'EARN' 
-                        ? 'bg-green-500 text-black' 
-                        : 'bg-[#00d4ff] text-black'
-                    }`}>
-                      {item.badge}
-                    </div>
-                  )}
-                </div>
-              </motion.button>
-            )
-          })}
-        </div>
-      )}
     </motion.div>
   )
 }
