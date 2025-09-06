@@ -550,9 +550,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-white relative group"
           >
             <Maximize2 className="h-4 w-4" />
+
+            {/* Tooltip for maximize button */}
+            <div className="absolute left-full ml-3 px-3 py-2 bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg border border-white/10">
+              <div className="font-medium">Expand Chat</div>
+            </div>
           </Button>
           <div className="flex flex-col space-y-2">
             {tabs.map((tab) => (
@@ -564,7 +569,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                   setActiveTab(tab.id as TabType)
                   onToggle()
                 }}
-                className="text-gray-400 hover:text-white relative"
+                className="text-gray-400 hover:text-white relative group"
               >
                 <tab.icon className="h-4 w-4" />
                 {tab.badge && tab.badge > 0 && (
@@ -572,6 +577,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                     {tab.badge > 9 ? '9+' : tab.badge}
                   </span>
                 )}
+
+                {/* Tooltip for collapsed state */}
+                <div className="absolute left-full ml-3 px-3 py-2 bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg border border-white/10">
+                  <div className="font-medium">{tab.name}</div>
+                  {tab.badge && tab.badge > 0 && (
+                    <div className="text-red-400 text-xs mt-1">
+                      {tab.badge} {tab.id === 'chat' ? 'online' : tab.id === 'messages' ? 'unread' : 'new'}
+                    </div>
+                  )}
+                </div>
               </Button>
             ))}
           </div>
