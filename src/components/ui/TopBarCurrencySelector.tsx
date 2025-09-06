@@ -29,7 +29,7 @@ const TopBarCurrencySelector: React.FC<TopBarCurrencySelectorProps> = ({
   const getBalanceDisplay = () => {
     const balance = getBalance()
     if (selectedCurrency === 'SC') {
-      return formatCurrency(balance)
+      return formatCurrency(balance, 'SC')
     } else {
       return `${(balance || 0).toLocaleString()} GC`
     }
@@ -86,7 +86,7 @@ const TopBarCurrencySelector: React.FC<TopBarCurrencySelectorProps> = ({
                   <span className="sm:hidden">SC</span>
                 </div>
                 <span className="text-xs">
-                  {user ? formatCurrency(user.balance || 0) : '0.00'}
+                  {user ? formatCurrency(user.sweepstakesCoins || user.balance || 0, 'SC') : '0 SC'}
                 </span>
               </button>
 

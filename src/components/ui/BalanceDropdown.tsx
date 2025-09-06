@@ -164,7 +164,7 @@ const BalanceDropdown: React.FC<BalanceDropdownProps> = ({ isOpen, onToggle }) =
           <div className="text-right">
             <div className="text-xs text-gray-400">Balance</div>
             <div className="text-sm font-bold text-[#00d4ff]">
-              {showBalance ? formatCurrency(user.balance, 'USD') : '****'}
+              {showBalance ? formatCurrency(user.sweepstakesCoins || user.balance || 0, 'SC') : '****'}
             </div>
           </div>
           <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -286,10 +286,10 @@ const BalanceDropdown: React.FC<BalanceDropdownProps> = ({ isOpen, onToggle }) =
                             transaction.amount > 0 ? 'text-green-400' : 'text-red-400'
                           }`}>
                             {transaction.amount > 0 ? '+' : ''}
-                            {formatCurrency(Math.abs(transaction.amount), 'USD')}
+                            {formatCurrency(Math.abs(transaction.amount), 'SC')}
                           </div>
                           <div className="text-xs text-gray-500">
-                            Balance: {formatCurrency(transaction.balanceAfter, 'USD')}
+                            Balance: {formatCurrency(transaction.balanceAfter, 'SC')}
                           </div>
                         </div>
                       </motion.div>

@@ -33,6 +33,7 @@ import { useUIStore } from '@/store/uiStore'
 import { useGameStatsStore } from '@/store/gameStatsStore'
 import { formatCurrency } from '@/lib/utils'
 import CasinoLayout from '@/components/layout/CasinoLayout'
+import { recordGameWin, recordGameLoss } from '@/lib/gameSessionManager'
 import { 
   generateServerSeed, 
   generateClientSeed, 
@@ -340,6 +341,47 @@ const EdgeDice: React.FC = () => {
       gameType: 'Dice'
     })
 
+    // Record game session for live feed and raffle tracking
+    try {
+      if (won && payout > 0) {
+        await recordGameWin(
+          user.id,
+          'dice',
+          'Dice',
+          betAmount,
+          payout,
+          calculateMultiplier(),
+          {
+            result: result,
+            target: target,
+            direction: direction,
+            nonce: newNonce,
+            serverSeed: session.serverSeed,
+            clientSeed: session.clientSeed
+          }
+        )
+      } else {
+        await recordGameLoss(
+          user.id,
+          'dice',
+          'Dice',
+          betAmount,
+          calculateMultiplier(),
+          {
+            result: result,
+            target: target,
+            direction: direction,
+            nonce: newNonce,
+            serverSeed: session.serverSeed,
+            clientSeed: session.clientSeed
+          }
+        )
+      }
+    } catch (error) {
+      console.error('Error recording game session:', error)
+      // Don't block the game if session recording fails
+    }
+
     // Run ticker animation first
     await runTickerAnimation(result, turboSpeed === 'fast' ? undefined : turboSpeed)
 
@@ -460,6 +502,48 @@ const EdgeDice: React.FC = () => {
       ...newRoll,
       gameType: 'Dice'
     })
+
+    // Record game session for live feed and raffle tracking
+    try {
+      if (won && payout > 0) {
+        await recordGameWin(
+          user.id,
+          'dice',
+          'Dice',
+          betAmount,
+          payout,
+          calculateMultiplier(),
+          {
+            result: result,
+            target: target,
+            direction: direction,
+            nonce: rollNonce,
+            serverSeed: session.serverSeed,
+            clientSeed: session.clientSeed,
+            autoBet: true
+          }
+        )
+      } else {
+        await recordGameLoss(
+          user.id,
+          'dice',
+          'Dice',
+          betAmount,
+          calculateMultiplier(),
+          {
+            result: result,
+            target: target,
+            direction: direction,
+            nonce: rollNonce,
+            serverSeed: session.serverSeed,
+            clientSeed: session.clientSeed,
+            autoBet: true
+          }
+        )
+      }
+    } catch (error) {
+      console.error('Error recording game session:', error)
+    }
 
     // Run ticker animation first
     await runTickerAnimation(result, turboMode ? autoSettings.turboSpeed : undefined)
@@ -1216,7 +1300,7 @@ const EdgeDice: React.FC = () => {
                           {won ? 'WIN!' : 'LOSS'}
                         </div>
                         <div className={`text-xs mt-0.5 text-center ${won ? '' : 'invisible'}`}>
-                          {won ? `+${formatCurrency(potentialWin - betAmount)} ${selectedCurrency}` : '+$0.00 USD'}
+                          {won ? `+${formatCurrency(potentialWin - betAmount, selectedCurrency)}` : `+0 ${selectedCurrency}`}
                         </div>
                       </motion.div>
                     </div>
