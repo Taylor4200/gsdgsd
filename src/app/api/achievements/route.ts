@@ -104,16 +104,27 @@ export async function POST(request: NextRequest) {
 
     // Award reward if specified
     if (definition.reward.type === 'coins') {
-      // Update user balance
-      const { error: balanceError } = await supabase
+      // Get current balance first
+      const { data: profile, error: fetchError } = await supabase
         .from('user_profiles')
-        .update({
-          coins: supabase.raw(`coins + ${definition.reward.amount}`)
-        })
+        .select('coins')
         .eq('user_id', userId)
+        .single()
 
-      if (balanceError) {
-        console.error('Error updating user balance:', balanceError)
+      if (fetchError) {
+        console.error('Error fetching user balance:', fetchError)
+      } else {
+        // Update user balance
+        const { error: balanceError } = await supabase
+          .from('user_profiles')
+          .update({
+            coins: (profile?.coins || 0) + definition.reward.amount
+          })
+          .eq('user_id', userId)
+
+        if (balanceError) {
+          console.error('Error updating user balance:', balanceError)
+        }
       }
     }
 
@@ -191,15 +202,26 @@ export async function PATCH(request: NextRequest) {
 
     // If achievement was just completed, award reward
     if (isCompleted && definition.reward.type === 'coins') {
-      const { error: balanceError } = await supabase
+      // Get current balance first
+      const { data: profile, error: fetchError } = await supabase
         .from('user_profiles')
-        .update({
-          coins: supabase.raw(`coins + ${definition.reward.amount}`)
-        })
+        .select('coins')
         .eq('user_id', userId)
+        .single()
 
-      if (balanceError) {
-        console.error('Error updating user balance:', balanceError)
+      if (fetchError) {
+        console.error('Error fetching user balance:', fetchError)
+      } else {
+        const { error: balanceError } = await supabase
+          .from('user_profiles')
+          .update({
+            coins: (profile?.coins || 0) + definition.reward.amount
+          })
+          .eq('user_id', userId)
+
+        if (balanceError) {
+          console.error('Error updating user balance:', balanceError)
+        }
       }
 
       // Broadcast achievement unlock

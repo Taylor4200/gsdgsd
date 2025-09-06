@@ -22,6 +22,22 @@ import { useUserStore } from '@/store/userStore'
 import { LeaderboardEntry } from '@/types/social'
 import { formatTime, formatCurrency } from '@/lib/utils'
 
+// Helper function to format values based on metric type
+const formatValue = (value: number, metric: string): string => {
+  switch (metric) {
+    case 'total_wagered':
+    case 'total_won':
+    case 'biggest_win':
+      return formatCurrency(value)
+    case 'games_played':
+      return value.toLocaleString()
+    case 'win_rate':
+      return `${(value * 100).toFixed(1)}%`
+    default:
+      return value.toString()
+  }
+}
+
 interface LeaderboardsProps {
   onUserClick?: (userId: string) => void
 }

@@ -597,28 +597,34 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
 
       {/* Modals */}
       <AnimatePresence>
-        {showUserProfile && selectedUser && (
+        {showUserProfile && selectedUser && user && (
           <UserProfileModal
+            isOpen={showUserProfile}
             user={selectedUser}
+            currentUser={user}
+            chatService={null}
             onClose={() => {
               setShowUserProfile(false)
               setSelectedUser(null)
             }}
-            onShowStats={onShowUserStats}
           />
         )}
         
         {showBanModal && banTarget && (
           <BanModal
-            userId={banTarget.userId}
-            username={banTarget.username}
+            isOpen={showBanModal}
+            targetUser={banTarget}
             onClose={() => {
               setShowBanModal(false)
               setBanTarget(null)
             }}
-            onSuccess={(message) => {
-              setTimeoutNotification({ message, type: 'timeout' })
+            onBan={(duration, reason) => {
+              // Handle ban logic here
+              console.log('Ban user:', banTarget.username, 'for', duration, 'reason:', reason)
+              setTimeoutNotification({ message: `User ${banTarget.username} has been timed out for ${duration}`, type: 'timeout' })
               setTimeout(() => setTimeoutNotification(null), 5000)
+              setShowBanModal(false)
+              setBanTarget(null)
             }}
           />
         )}

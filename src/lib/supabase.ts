@@ -14,6 +14,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Export createClient for use in API routes
+export { createClient }
+
 // Auth helper functions
 export const auth = {
   // Create user profile in database
