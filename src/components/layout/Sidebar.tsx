@@ -33,9 +33,21 @@ interface SidebarProps {
   collapsed?: boolean
   onCollapse?: (collapsed: boolean) => void
   isMobile?: boolean
+  onOpenFriends?: () => void
+  onOpenLeaderboards?: () => void
+  onOpenAchievements?: () => void
+  onOpenSocialBetting?: () => void
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse, isMobile = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  collapsed = false, 
+  onCollapse, 
+  isMobile = false,
+  onOpenFriends,
+  onOpenLeaderboards,
+  onOpenAchievements,
+  onOpenSocialBetting
+}) => {
   const pathname = usePathname()
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['social']))
   
@@ -48,10 +60,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse, isMobi
   ]
 
   const socialItems = [
-    { icon: Users, label: 'Friends', href: '/friends', badge: 'NEW' },
-    { icon: Trophy, label: 'Leaderboards', href: '/leaderboards' },
-    { icon: Award, label: 'Achievements', href: '/achievements' },
-    { icon: Eye, label: 'Social Betting', href: '/social-betting' },
+    { icon: Users, label: 'Friends', onClick: onOpenFriends, badge: 'NEW' },
+    { icon: Trophy, label: 'Leaderboards', onClick: onOpenLeaderboards },
+    { icon: Award, label: 'Achievements', onClick: onOpenAchievements },
+    { icon: Eye, label: 'Social Betting', onClick: onOpenSocialBetting },
   ]
 
   const rewardsItems = [
@@ -200,17 +212,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse, isMobi
                   >
                     <div className="ml-4 mt-1 space-y-1">
                       {socialItems.map((item) => {
-                        const isActive = pathname === item.href
                         return (
-                          <motion.a
+                          <motion.button
                             key={item.label}
-                            href={item.href}
+                            onClick={item.onClick}
                             whileHover={{ x: 4 }}
                             className={cn(
-                              'flex items-center px-4 py-2 text-sm font-medium transition-colors duration-200 relative group',
-                              isActive 
-                                ? 'text-[#00d4ff] bg-[#00d4ff]/10 border-r-2 border-[#00d4ff]' 
-                                : 'text-gray-300 hover:text-white hover:bg-white/5'
+                              'flex items-center px-4 py-2 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
+                              'text-gray-300 hover:text-white hover:bg-white/5'
                             )}
                           >
                             <item.icon className="h-4 w-4 flex-shrink-0" />
@@ -225,7 +234,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse, isMobi
                                 {item.badge}
                               </span>
                             )}
-                          </motion.a>
+                          </motion.button>
                         )
                       })}
                     </div>
@@ -300,17 +309,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse, isMobi
           {collapsed && (
             <>
               {socialItems.map((item) => {
-                const isActive = pathname === item.href
                 return (
-                  <motion.a
+                  <motion.button
                     key={item.label}
-                    href={item.href}
+                    onClick={item.onClick}
                     whileHover={{ x: 0 }}
                     className={cn(
-                      'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 relative group',
-                      isActive 
-                        ? 'text-[#00d4ff] bg-[#00d4ff]/10 border-r-2 border-[#00d4ff]' 
-                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                      'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
+                      'text-gray-300 hover:text-white hover:bg-white/5'
                     )}
                   >
                     <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -328,7 +334,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse, isMobi
                         </div>
                       )}
                     </div>
-                  </motion.a>
+                  </motion.button>
                 )
               })}
               

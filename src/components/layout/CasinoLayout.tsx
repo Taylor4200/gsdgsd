@@ -14,7 +14,12 @@ import LiveSupportWidget from '@/components/ui/LiveSupportWidget'
 import LiveStatsModal from '@/components/ui/LiveStatsModal'
 import MyBetsModal from '@/components/ui/MyBetsModal'
 import BetHistoryScroll from '@/components/ui/BetHistoryScroll'
+import StakeLiveFeed from '@/components/ui/StakeLiveFeed'
 import UserStatsModal from '@/components/modals/UserStatsModal'
+import { FriendsModal } from '@/components/modals/FriendsModal'
+import { LeaderboardsModal } from '@/components/modals/LeaderboardsModal'
+import { AchievementsModal } from '@/components/modals/AchievementsModal'
+import { SocialBettingModal } from '@/components/modals/SocialBettingModal'
 import { useUIStore } from '@/store/uiStore'
 import { useUserStore } from '@/store/userStore'
 
@@ -33,6 +38,13 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
     isOpen: false,
     user: null
   })
+  
+  // Social modal states
+  const [friendsModalOpen, setFriendsModalOpen] = useState(false)
+  const [leaderboardsModalOpen, setLeaderboardsModalOpen] = useState(false)
+  const [achievementsModalOpen, setAchievementsModalOpen] = useState(false)
+  const [socialBettingModalOpen, setSocialBettingModalOpen] = useState(false)
+  
   const { showWalletModal, setWalletModal, showSignupModal, setSignupModal, showLoginModal, setLoginModal, showLiveStatsModal, setLiveStatsModal, showMyBetsModal, setMyBetsModal, showBetHistoryScroll, setBetHistoryScroll } = useUIStore()
   const { user } = useUserStore()
 
@@ -124,6 +136,10 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
         <Sidebar 
           collapsed={sidebarCollapsed}
           onCollapse={setSidebarCollapsed}
+          onOpenFriends={() => setFriendsModalOpen(true)}
+          onOpenLeaderboards={() => setLeaderboardsModalOpen(true)}
+          onOpenAchievements={() => setAchievementsModalOpen(true)}
+          onOpenSocialBetting={() => setSocialBettingModalOpen(true)}
         />
       </div>
 
@@ -140,6 +156,22 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
               collapsed={false}
               onCollapse={() => setMobileSidebarOpen(false)}
               isMobile={true}
+              onOpenFriends={() => {
+                setFriendsModalOpen(true)
+                setMobileSidebarOpen(false)
+              }}
+              onOpenLeaderboards={() => {
+                setLeaderboardsModalOpen(true)
+                setMobileSidebarOpen(false)
+              }}
+              onOpenAchievements={() => {
+                setAchievementsModalOpen(true)
+                setMobileSidebarOpen(false)
+              }}
+              onOpenSocialBetting={() => {
+                setSocialBettingModalOpen(true)
+                setMobileSidebarOpen(false)
+              }}
             />
           </motion.div>
         )}
@@ -197,6 +229,9 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
           <div className="flex-1 px-4 md:px-6">
             {children}
           </div>
+          <div className="px-4 md:px-6 pb-4">
+            <StakeLiveFeed />
+          </div>
           <LegalFooter />
         </div>
       </motion.main>
@@ -235,6 +270,27 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
           userStats={userStatsModal.user}
         />
       )}
+
+      {/* Social Modals */}
+      <FriendsModal
+        isOpen={friendsModalOpen}
+        onClose={() => setFriendsModalOpen(false)}
+      />
+      
+      <LeaderboardsModal
+        isOpen={leaderboardsModalOpen}
+        onClose={() => setLeaderboardsModalOpen(false)}
+      />
+      
+      <AchievementsModal
+        isOpen={achievementsModalOpen}
+        onClose={() => setAchievementsModalOpen(false)}
+      />
+      
+      <SocialBettingModal
+        isOpen={socialBettingModalOpen}
+        onClose={() => setSocialBettingModalOpen(false)}
+      />
 
       {/* Live Support Widget */}
       <LiveSupportWidget />
