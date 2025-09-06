@@ -6,7 +6,6 @@ import {
   MessageCircle,
   Send,
   Users,
-  Trophy,
   Eye,
   Award,
   Crown,
@@ -35,7 +34,6 @@ import { useChatWebSocket } from '@/hooks/usePusher'
 // Import social components
 import FriendsList from '@/components/social/FriendsList'
 import PrivateMessages from '@/components/social/PrivateMessages'
-import AchievementsList from '@/components/social/AchievementsList'
 import Leaderboards from '@/components/social/Leaderboards'
 import SocialBetting from '@/components/social/SocialBetting'
 
@@ -47,7 +45,7 @@ interface ChatSidebarProps {
   isMobile?: boolean
 }
 
-type TabType = 'chat' | 'friends' | 'messages' | 'achievements' | 'leaderboards' | 'social'
+type TabType = 'chat' | 'friends' | 'messages' | 'leaderboards' | 'social'
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed = false, onShowUserStats, isMobile = false }) => {
   const { user, unreadMessages, socialNotifications } = useUserStore()
@@ -285,7 +283,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
     { id: 'chat', name: 'Chat', icon: MessageCircle, badge: onlineCount },
     { id: 'friends', name: 'Friends', icon: Users },
     { id: 'messages', name: 'Messages', icon: MessageCircle, badge: unreadMessages },
-    { id: 'achievements', name: 'Achievements', icon: Trophy },
     { id: 'leaderboards', name: 'Leaderboards', icon: Crown },
     { id: 'social', name: 'Social', icon: Eye }
   ]
@@ -468,8 +465,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
         return <FriendsList />
       case 'messages':
         return <PrivateMessages />
-      case 'achievements':
-        return <AchievementsList />
       case 'leaderboards':
         return <Leaderboards />
       case 'social':
