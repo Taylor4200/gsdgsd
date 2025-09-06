@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatTime } from '@/lib/utils'
 import { useUserStore } from '@/store/userStore'
-import { useWebSocket } from '@/hooks/useWebSocket'
+import { useLiveFeedWebSocket } from '@/hooks/usePusher'
 
 interface LiveBet {
   id: string
@@ -42,37 +42,26 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
   const [bets, setBets] = useState<LiveBet[]>([])
   const [loading, setLoading] = useState(true)
 
-  // WebSocket connection
-  const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8080/ws'
-  const { isConnected, connectionStatus, sendMessage } = useWebSocket({
-    url: wsUrl,
-    onMessage: (message) => {
-      if (message.type === 'live_feed_event' && message.data) {
-        // Add new event to the top of the list
-        const newBet: LiveBet = {
-          id: message.data.id || Date.now().toString(),
-          user_id: message.data.user_id,
-          username: message.data.username,
-          game_id: message.data.game_id,
-          game_name: message.data.game_name,
-          bet_amount: message.data.bet_amount,
-          win_amount: message.data.win_amount,
-          multiplier: message.data.multiplier,
-          result: message.data.win_amount > 0 ? 'win' : 'loss',
-          currency: 'SC' as const,
-          created_at: message.data.created_at || new Date().toISOString(),
-          is_featured: message.data.is_featured
-        }
-        
-        setBets(prev => [newBet, ...prev.slice(0, 49)]) // Keep last 50 bets
+  // Pusher connection for live feed
+  const { isConnected, connectionState, sendMessage } = useLiveFeedWebSocket((event, data) => {
+    if (event === 'live-feed-event' && data) {
+      // Add new event to the top of the list
+      const newBet: LiveBet = {
+        id: data.id || Date.now().toString(),
+        user_id: data.user_id,
+        username: data.username,
+        game_id: data.game_id,
+        game_name: data.game_name,
+        bet_amount: data.bet_amount,
+        win_amount: data.win_amount,
+        multiplier: data.multiplier,
+        result: data.win_amount > 0 ? 'win' : 'loss',
+        currency: 'SC' as const,
+        created_at: data.created_at || new Date().toISOString(),
+        is_featured: data.is_featured
       }
-    },
-    onOpen: () => {
-      console.log('WebSocket connected to live feed')
-      sendMessage({ type: 'subscribe' })
-    },
-    onClose: () => {
-      console.log('WebSocket disconnected from live feed')
+      
+      setBets(prev => [newBet, ...prev.slice(0, 49)]) // Keep last 50 bets
     }
   })
 

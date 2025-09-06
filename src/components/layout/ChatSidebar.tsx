@@ -30,7 +30,7 @@ import { useUserStore } from '@/store/userStore'
 import type { ChatMessage } from '@/lib/chatService'
 import UserProfileModal from '@/components/chat/UserProfileModal'
 import BanModal from '@/components/modals/BanModal'
-import { useWebSocket } from '@/hooks/useWebSocket'
+import { useChatWebSocket } from '@/hooks/usePusher'
 
 // Import social components
 import FriendsList from '@/components/social/FriendsList'
@@ -66,36 +66,24 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   const [banTarget, setBanTarget] = useState<{userId: string, username: string} | null>(null)
   const [timeoutNotification, setTimeoutNotification] = useState<{message: string, type: 'timeout'} | null>(null)
 
-  // WebSocket connection for real-time chat
-  const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8080/ws'
-  const { isConnected: wsConnected, sendMessage } = useWebSocket({
-    url: wsUrl,
-    onMessage: (message) => {
-      if (message.type === 'chat_message' && message.data) {
-        setMessages(prev => [...prev, message.data])
-        scrollToBottom()
-      } else if (message.type === 'online_count_update' && message.data) {
-        setOnlineCount(message.data.count)
-      } else if (message.type === 'presence_update' && message.data) {
-        console.log('Presence update:', message.data)
-      } else if (message.type === 'friend_request' && message.data) {
-        // Handle friend request notification
-        console.log('Friend request received:', message.data)
-      } else if (message.type === 'private_message' && message.data) {
-        // Handle private message notification
-        console.log('Private message received:', message.data)
-      } else if (message.type === 'achievement_unlock' && message.data) {
-        // Handle achievement unlock notification
-        console.log('Achievement unlocked:', message.data)
-      }
-    },
-    onOpen: () => {
-      console.log('Chat WebSocket connected')
-      setIsConnected(true)
-    },
-    onClose: () => {
-      console.log('Chat WebSocket disconnected')
-      setIsConnected(false)
+  // Pusher connection for real-time chat
+  const { isConnected: wsConnected, sendMessage } = useChatWebSocket((event, data) => {
+    if (event === 'chat-message' && data) {
+      setMessages(prev => [...prev, data])
+      scrollToBottom()
+    } else if (event === 'online-count-update' && data) {
+      setOnlineCount(data.count)
+    } else if (event === 'presence-update' && data) {
+      console.log('Presence update:', data)
+    } else if (event === 'friend-request' && data) {
+      // Handle friend request notification
+      console.log('Friend request received:', data)
+    } else if (event === 'private-message' && data) {
+      // Handle private message notification
+      console.log('Private message received:', data)
+    } else if (event === 'achievement-unlock' && data) {
+      // Handle achievement unlock notification
+      console.log('Achievement unlocked:', data)
     }
   })
 
