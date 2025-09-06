@@ -38,7 +38,7 @@ interface LiveFeedProps {
 
 const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
   const { user } = useUserStore()
-  const [activeTab, setActiveTab] = useState<'my_bets' | 'all_bets' | 'high_rollers'>('high_rollers')
+  const [activeTab, setActiveTab] = useState<'my_bets' | 'all_bets' | 'high_rollers'>('all_bets')
   const [bets, setBets] = useState<LiveBet[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -163,8 +163,8 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
 
   const tabs = [
     { id: 'my_bets', label: 'My Bets', count: bets.filter(bet => bet.user_id === user?.id).length },
-    { id: 'all_bets', label: 'All Bets', count: bets.length },
-    { id: 'high_rollers', label: 'High Rollers', count: bets.filter(bet => bet.is_featured).length }
+    { id: 'all_bets', label: 'All Bets', count: bets.filter(bet => bet.user_id !== user?.id).length },
+    { id: 'high_rollers', label: 'High Rollers', count: bets.filter(bet => bet.is_featured && bet.user_id !== user?.id).length }
   ]
 
   return (
@@ -250,7 +250,18 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
                     </td>
                   </tr>
                 ) : (
-                  bets.map((bet, index) => (
+                  bets
+                    .filter(bet => {
+                      if (activeTab === 'my_bets') {
+                        return bet.user_id === user?.id
+                      } else if (activeTab === 'all_bets') {
+                        return bet.user_id !== user?.id
+                      } else if (activeTab === 'high_rollers') {
+                        return bet.is_featured && bet.user_id !== user?.id
+                      }
+                      return true
+                    })
+                    .map((bet, index) => (
                     <motion.tr
                       key={bet.id}
                       initial={{ opacity: 0, y: 20 }}
