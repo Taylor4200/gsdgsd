@@ -130,26 +130,26 @@ export async function GET(request: NextRequest) {
       : 'None'
 
     // Calculate account age
-    const accountAge = userProfile.created_at 
+    const accountAge = userProfile?.created_at
       ? Math.floor((Date.now() - new Date(userProfile.created_at).getTime()) / (1000 * 60 * 60 * 24))
       : 0
 
     const userStats = {
       // Basic profile data
-      username: userProfile.username,
-      level: userProfile.level || 1,
-      vipLevel: userProfile.vip_tier || 0,
-      isOnline: userProfile.is_online || false,
-      lastActive: userProfile.last_active || new Date(),
-      
+      username: userProfile?.username || 'Unknown',
+      level: userProfile?.level || 1,
+      vipLevel: userProfile?.vip_tier || 0,
+      isOnline: userProfile?.is_online || false,
+      lastActive: userProfile?.last_active || new Date(),
+
       // Wagering stats
-      totalWagered: userProfile.total_wagered || 0,
-      totalWon: userProfile.total_won || 0,
+      totalWagered: userProfile?.total_wagered || 0,
+      totalWon: userProfile?.total_won || 0,
       totalBets: totalBets,
       totalWins: totalWins,
       totalLosses: totalLosses,
-      winRate: userProfile.win_rate || (totalBets > 0 ? (totalWins / totalBets) * 100 : 0),
-      
+      winRate: userProfile?.win_rate || (totalBets > 0 ? (totalWins / totalBets) * 100 : 0),
+
       // Additional stats
       averageWager: averageWager,
       biggestWin: biggestWin,
@@ -161,13 +161,13 @@ export async function GET(request: NextRequest) {
       accountAge: accountAge,
       
       // Social stats
-      totalMessages: userProfile.total_messages || 0,
-      achievementsCount: userProfile.achievements_count || 0,
+      totalMessages: userProfile?.total_messages || 0,
+      achievementsCount: userProfile?.achievements_count || 0,
       
       // Mock additional stats (for now)
       totalDeposits: Math.floor(Math.random() * 50000) + 5000,
       totalWithdrawals: Math.floor(Math.random() * 40000) + 4000,
-      netProfit: (userProfile.total_won || 0) - (userProfile.total_wagered || 0),
+      netProfit: (userProfile?.total_won || 0) - (userProfile?.total_wagered || 0),
     }
 
     return NextResponse.json({ stats: userStats })
