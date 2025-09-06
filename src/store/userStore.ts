@@ -388,10 +388,13 @@ export const useUserStore = create<UserState>()(
 
       refreshSocialData: async () => {
         try {
+          const { user } = get()
+          if (!user) return
+          
           const [friendsRes, messagesRes, achievementsRes, leaderboardsRes] = await Promise.all([
             fetch('/api/friends'),
             fetch('/api/messages'),
-            fetch('/api/achievements'),
+            fetch(`/api/achievements?userId=${user.id}`),
             fetch('/api/leaderboards')
           ])
           
@@ -419,7 +422,10 @@ export const useUserStore = create<UserState>()(
 
       fetchAchievementDefinitions: async () => {
         try {
-          const response = await fetch('/api/achievements')
+          const { user } = get()
+          if (!user) return
+          
+          const response = await fetch(`/api/achievements?userId=${user.id}`)
           const data = await response.json()
           
           set({
