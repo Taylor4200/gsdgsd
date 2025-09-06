@@ -12,11 +12,11 @@ import {
   Check,
   CheckCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  ArrowLeft
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Card, CardContent } from '@/components/ui/Card'
 import { useUserStore } from '@/store/userStore'
 import { Conversation, PrivateMessage } from '@/types/social'
 import { formatTime } from '@/lib/utils'
@@ -74,148 +74,152 @@ const PrivateMessages: React.FC<PrivateMessagesProps> = ({ onSelectConversation 
     }
   }
 
-  return (
-    <div className="h-full flex">
-      {/* Conversations List */}
-      <div className="w-1/3 border-r border-white/10 flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b border-white/10">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-white flex items-center">
-              <MessageCircle className="h-5 w-5 mr-2 text-[#00d4ff]" />
-              Messages
-              {unreadMessages > 0 && (
-                <span className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
-                  {unreadMessages}
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
+  }
+
+  // If a conversation is selected, show the chat view
+  if (selectedConversation && currentConversation) {
+    return (
+      <div className="h-full flex flex-col">
+        {/* Chat Header */}
+        <div className="p-3 border-b border-white/10 bg-[#1a2c38]">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedConversation(null)}
+              className="p-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            
+            {/* Avatar */}
+            <div className="relative">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-xs">
+                  {currentConversation.other_user_profile.username.charAt(0).toUpperCase()}
                 </span>
-              )}
-            </h3>
+              </div>
+              <div className={`absolute -bottom-1 -right-1 w-2 h-2 rounded-full border border-[#1a2c38] ${
+                currentConversation.other_user_profile.is_online ? 'bg-green-500' : 'bg-gray-500'
+              }`} />
+            </div>
+
+            {/* User Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-1">
+                <h4 className="text-white font-medium text-sm truncate">
+                  {currentConversation.other_user_profile.username}
+                </h4>
+                {currentConversation.other_user_profile.vip_tier && (
+                  <Crown className="h-3 w-3 text-yellow-400 flex-shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-gray-400">
+                Level {currentConversation.other_user_profile.level} • 
+                {currentConversation.other_user_profile.is_online ? ' Online' : ' Offline'}
+              </p>
+            </div>
           </div>
-          
-          <Input
-            placeholder="Search conversations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            icon={<Search className="h-4 w-4" />}
-            className="bg-[#1a2c38] border-[#2d3748]"
-          />
         </div>
 
-        {/* Conversations */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredConversations.length === 0 ? (
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          {currentMessages.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
-              <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No conversations</p>
-              <p className="text-sm">Start chatting with friends!</p>
+              <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No messages yet</p>
+              <p className="text-xs">Start the conversation!</p>
             </div>
           ) : (
-            <div className="p-2 space-y-1">
-              {filteredConversations.map((conversation) => (
-                <ConversationCard
-                  key={conversation.id}
-                  conversation={conversation}
-                  isSelected={selectedConversation === conversation.id}
-                  onClick={() => handleSelectConversation(conversation)}
-                />
-              ))}
-            </div>
+            currentMessages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                isOwn={message.sender_id === currentConversation.user_id}
+              />
+            ))
           )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message Input */}
+        <div className="p-3 border-t border-white/10 bg-[#1a2c38]">
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Type a message..."
+              value={messageContent}
+              onChange={(e) => setMessageContent(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="flex-1 bg-[#2d3748] border-[#374151] text-white placeholder-gray-400 text-sm"
+              disabled={isSending}
+              maxLength={500}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!messageContent.trim() || isSending}
+              size="sm"
+              className="bg-[#00d4ff] hover:bg-[#00b8e6] text-black disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {messageContent.length}/500 characters
+          </div>
         </div>
       </div>
+    )
+  }
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
-        {currentConversation ? (
-          <>
-            {/* Chat Header */}
-            <div className="p-4 border-b border-white/10 bg-[#1a2c38]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  {/* Avatar */}
-                  <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">
-                        {currentConversation.other_user_profile.username.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#1a2c38] ${
-                      currentConversation.other_user_profile.is_online ? 'bg-green-500' : 'bg-gray-500'
-                    }`} />
-                  </div>
+  // Default view - conversations list
+  return (
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="p-3 border-b border-white/10">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-white flex items-center">
+            <MessageCircle className="h-4 w-4 mr-2 text-[#00d4ff]" />
+            Messages
+            {unreadMessages > 0 && (
+              <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                {unreadMessages}
+              </span>
+            )}
+          </h3>
+        </div>
+        
+        <Input
+          placeholder="Search conversations..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          icon={<Search className="h-3 w-3" />}
+          className="bg-[#2d3748] border-[#374151] text-sm"
+        />
+      </div>
 
-                  {/* User Info */}
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h4 className="text-white font-medium">
-                        {currentConversation.other_user_profile.username}
-                      </h4>
-                      {currentConversation.other_user_profile.vip_tier && (
-                        <Crown className="h-4 w-4 text-yellow-400" />
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-400">
-                      Level {currentConversation.other_user_profile.level} • 
-                      {currentConversation.other_user_profile.is_online ? ' Online' : ' Offline'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <Button variant="ghost" size="sm">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {currentMessages.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No messages yet</p>
-                  <p className="text-sm">Start the conversation!</p>
-                </div>
-              ) : (
-                currentMessages.map((message) => (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    isOwn={message.sender_id === currentConversation.user_id}
-                  />
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Message Input */}
-            <div className="p-4 border-t border-white/10 bg-[#1a2c38]">
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Type a message..."
-                  value={messageContent}
-                  onChange={(e) => setMessageContent(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  className="flex-1"
-                  disabled={isSending}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!messageContent.trim() || isSending}
-                  className="bg-[#00d4ff] hover:bg-[#00b8e6] text-black"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </>
+      {/* Conversations */}
+      <div className="flex-1 overflow-y-auto">
+        {filteredConversations.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No conversations</p>
+            <p className="text-xs">Start chatting with friends!</p>
+          </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-              <p>Choose a conversation from the list to start messaging</p>
-            </div>
+          <div className="p-2 space-y-1">
+            {filteredConversations.map((conversation) => (
+              <ConversationCard
+                key={conversation.id}
+                conversation={conversation}
+                isSelected={selectedConversation === conversation.id}
+                onClick={() => handleSelectConversation(conversation)}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -235,23 +239,23 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation, isSel
 
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+      whileHover={{ scale: 1.01 }}
+      className={`p-2 rounded-lg cursor-pointer transition-all duration-200 ${
         isSelected 
           ? 'bg-[#00d4ff]/20 border border-[#00d4ff]/50' 
           : 'bg-[#1a2c38] hover:bg-[#2a3c48] border border-transparent'
       }`}
       onClick={onClick}
     >
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2">
         {/* Avatar */}
         <div className="relative">
-          <div className="w-10 h-10 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">
+          <div className="w-8 h-8 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-xs">
               {profile.username.charAt(0).toUpperCase()}
             </span>
           </div>
-          <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#1a2c38] ${
+          <div className={`absolute -bottom-1 -right-1 w-2 h-2 rounded-full border border-[#1a2c38] ${
             profile.is_online ? 'bg-green-500' : 'bg-gray-500'
           }`} />
         </div>
@@ -259,22 +263,22 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation, isSel
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <h4 className="text-white font-medium truncate">
+            <h4 className="text-white font-medium text-sm truncate">
               {profile.username}
             </h4>
             {conversation.unread_count > 0 && (
-              <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full">
+              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
                 {conversation.unread_count}
               </span>
             )}
           </div>
           
           {lastMessage && (
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-sm text-gray-400 truncate">
+            <div className="flex items-center justify-between mt-0.5">
+              <p className="text-xs text-gray-400 truncate">
                 {lastMessage.content}
               </p>
-              <div className="flex items-center space-x-1 text-xs text-gray-500">
+              <div className="flex items-center space-x-1 text-xs text-gray-500 ml-2">
                 {lastMessage.is_read ? (
                   <CheckCheck className="h-3 w-3 text-blue-400" />
                 ) : (
@@ -302,7 +306,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn }) => {
       animate={{ opacity: 1, y: 0 }}
       className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
     >
-      <div className={`max-w-[70%] p-3 rounded-lg ${
+      <div className={`max-w-[80%] p-2 rounded-lg ${
         isOwn 
           ? 'bg-[#00d4ff] text-black' 
           : 'bg-[#2a3c48] text-white'

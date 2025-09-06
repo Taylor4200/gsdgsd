@@ -32,7 +32,7 @@ import BanModal from '@/components/modals/BanModal'
 import { useChatWebSocket } from '@/hooks/usePusher'
 
 // Import social components
-import FriendsList from '@/components/social/FriendsList'
+import FriendsListCompact from '@/components/social/FriendsListCompact'
 import PrivateMessages from '@/components/social/PrivateMessages'
 import Leaderboards from '@/components/social/Leaderboards'
 import SocialBetting from '@/components/social/SocialBetting'
@@ -462,7 +462,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
           </>
         )
       case 'friends':
-        return <FriendsList />
+        return <FriendsListCompact />
       case 'messages':
         return <PrivateMessages />
       case 'leaderboards':
