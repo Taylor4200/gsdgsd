@@ -38,7 +38,7 @@ interface LiveFeedProps {
 
 const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
   const { user } = useUserStore()
-  const [activeTab, setActiveTab] = useState<'my_bets' | 'all_bets' | 'high_rollers'>('all_bets')
+  // No tabs needed - just show all recent bets
   const [bets, setBets] = useState<LiveBet[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -61,24 +61,16 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
         is_featured: data.is_featured
       }
       
-      setBets(prev => [newBet, ...prev.slice(0, 49)]) // Keep last 50 bets
+      setBets(prev => [newBet, ...prev.slice(0, 9)]) // Keep last 10 bets
     }
   })
 
   // Fetch initial data and setup polling as fallback
   const fetchBets = async () => {
     try {
-      let url = '/api/live-feed?limit=50'
-      
-      if (activeTab === 'my_bets' && user?.id) {
-        url += `&user_id=${user.id}`
-      } else if (activeTab === 'high_rollers') {
-        url += '&featured=true'
-      }
-
-      const response = await fetch(url)
+      const response = await fetch('/api/live-feed?limit=10')
       const data = await response.json()
-      
+
       if (data.events) {
         // Transform events to bets format
         const transformedBets = data.events.map((event: any) => ({
@@ -95,8 +87,8 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
           created_at: event.created_at,
           is_featured: event.is_featured
         }))
-        
-        setBets(transformedBets)
+
+        setBets(transformedBets.slice(0, 10)) // Keep only last 10 bets
       }
     } catch (error) {
       console.error('Error fetching live bets:', error)
@@ -107,16 +99,16 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
 
   useEffect(() => {
     fetchBets()
-    
+
     // Fallback polling every 30 seconds if WebSocket is not connected
     const interval = setInterval(() => {
       if (!isConnected) {
         fetchBets()
       }
     }, 30000)
-    
+
     return () => clearInterval(interval)
-  }, [activeTab, isConnected])
+  }, [isConnected])
 
   // Get game icon
   const getGameIcon = (gameId: string) => {
@@ -161,33 +153,15 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
     return username // Username is already "Hidden" if user has ghost mode enabled
   }
 
-  const tabs = [
-    { id: 'my_bets', label: 'My Bets', count: bets.filter(bet => bet.user_id === user?.id).length },
-    { id: 'all_bets', label: 'All Bets', count: bets.filter(bet => bet.user_id !== user?.id).length },
-    { id: 'high_rollers', label: 'High Rollers', count: bets.filter(bet => bet.is_featured && bet.user_id !== user?.id).length }
-  ]
+  // No tabs needed - just show recent activity
 
   return (
     <div className={`bg-[#0f1419] border-t border-[#1a2c38] ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-[#1a2c38]">
-        <div className="flex items-center space-x-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-[#00d4ff] text-black'
-                  : 'text-gray-400 hover:text-white hover:bg-[#1a2c38]'
-              }`}
-            >
-              <span className="text-sm font-medium">{tab.label}</span>
-              <span className="text-xs bg-black/20 px-1.5 py-0.5 rounded text-gray-300">
-                {tab.count}
-              </span>
-            </button>
-          ))}
+        <div className="flex items-center space-x-4">
+          <h3 className="text-white font-semibold text-lg">Live Feed</h3>
+          <div className="text-xs text-gray-400">Recent Activity</div>
         </div>
         
         {/* Connection Status */}
@@ -250,18 +224,7 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
                     </td>
                   </tr>
                 ) : (
-                  bets
-                    .filter(bet => {
-                      if (activeTab === 'my_bets') {
-                        return bet.user_id === user?.id
-                      } else if (activeTab === 'all_bets') {
-                        return bet.user_id !== user?.id
-                      } else if (activeTab === 'high_rollers') {
-                        return bet.is_featured && bet.user_id !== user?.id
-                      }
-                      return true
-                    })
-                    .map((bet, index) => (
+                  bets.map((bet, index) => (
                     <motion.tr
                       key={bet.id}
                       initial={{ opacity: 0, y: 20 }}

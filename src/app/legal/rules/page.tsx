@@ -13,7 +13,8 @@ import {
   Users,
   Trophy,
   DollarSign,
-  X
+  X,
+  Gift
 } from 'lucide-react'
 import CasinoLayout from '@/components/layout/CasinoLayout'
 
@@ -150,6 +151,12 @@ export default function RulesPage() {
                   title: "Entry Limits",
                   description: "No purchase necessary to enter. Players can earn entries through gameplay or purchase promotional sweepstakes coins.",
                   color: "from-indigo-500 to-blue-500"
+                },
+                {
+                  icon: <Gift className="w-8 h-8" />,
+                  title: "Free Entry Methods",
+                  description: "Earn free entries through: Daily login bonuses, gameplay rewards, referral program, social media engagement, and special promotions.",
+                  color: "from-green-500 to-emerald-500"
                 },
                 {
                   icon: <AlertTriangle className="w-8 h-8" />,
