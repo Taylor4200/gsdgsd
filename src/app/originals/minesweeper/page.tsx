@@ -30,6 +30,7 @@ import { useGlobalNonceStore } from '@/store/gameStore'
 import { generateMinePositions } from '@/lib/minesweeper/provablyFair'
 import { formatCurrency } from '@/lib/utils'
 import CasinoLayout from '@/components/layout/CasinoLayout'
+import { recordGameWin, recordGameLoss } from '@/lib/gameSessionManager'
 import { verifyGameResult, type VerificationResult } from '@/lib/minesweeper/provablyFair'
 
 interface Cell {
@@ -720,6 +721,44 @@ const EdgeMinesweeper: React.FC = () => {
         timestamp: new Date(),
         gameType: 'minesweeper'
       })
+
+      // Record game session for live feed and raffle tracking
+      try {
+        if (user) {
+          if (gameState.gameStatus === 'won' && payout > 0) {
+            await recordGameWin(
+              user.id,
+              'minesweeper',
+              'Minesweeper',
+              betAmount,
+              payout,
+              payoutMultiplier,
+              {
+                minesFound: gameState.clearedTiles,
+                totalMines: customMines,
+                boardSize: `${config.boardWidth}x${config.boardHeight}`,
+                roundId: gameResult.roundId
+              }
+            )
+          } else if (gameState.gameStatus === 'lost') {
+            await recordGameLoss(
+              user.id,
+              'minesweeper',
+              'Minesweeper',
+              betAmount,
+              0,
+              {
+                minesFound: gameState.clearedTiles,
+                totalMines: customMines,
+                boardSize: `${config.boardWidth}x${config.boardHeight}`,
+                roundId: gameResult.roundId
+              }
+            )
+          }
+        }
+      } catch (error) {
+        console.error('Error recording game session:', error)
+      }
 
       // Add to local game history
       setGameHistory(prev => [{

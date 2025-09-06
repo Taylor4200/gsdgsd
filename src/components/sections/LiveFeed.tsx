@@ -8,93 +8,52 @@ import { formatCurrency, formatTime } from '@/lib/utils'
 
 interface LiveEvent {
   id: string
-  type: 'win' | 'jackpot' | 'pack_open' | 'achievement'
+  event_type: 'win' | 'big_win' | 'jackpot' | 'achievement'
   username: string
-  avatar?: string
-  amount?: number
-  game?: string
-  item?: string
-  timestamp: Date
+  game_name: string
+  bet_amount: number
+  win_amount: number
+  multiplier: number
+  is_featured: boolean
+  created_at: string
 }
 
 const LiveFeed: React.FC = () => {
-  const [events, setEvents] = useState<LiveEvent[]>([
-    {
-      id: '1',
-      type: 'win',
-      username: 'CryptoKing92',
-      amount: 15670,
-      game: 'Neon Crash',
-      timestamp: new Date(Date.now() - 30000)
-    },
-    {
-      id: '2',
-      type: 'pack_open',
-      username: 'NeonHunter',
-      item: 'Legendary Avatar',
-      timestamp: new Date(Date.now() - 120000)
-    },
-    {
-      id: '3',
-      type: 'jackpot',
-      username: 'QuantumPlayer',
-      amount: 45890,
-      game: 'Cyber Slots',
-      timestamp: new Date(Date.now() - 180000)
-    },
-    {
-      id: '4',
-      type: 'achievement',
-      username: 'StarGazer',
-      item: 'High Roller Badge',
-      timestamp: new Date(Date.now() - 240000)
-    },
-    {
-      id: '5',
-      type: 'win',
-      username: 'DiamondHands',
-      amount: 8920,
-      game: 'Quantum Dice',
-      timestamp: new Date(Date.now() - 300000)
+  const [events, setEvents] = useState<LiveEvent[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch live feed events
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('/api/live-feed?limit=20')
+      const data = await response.json()
+      if (data.events) {
+        setEvents(data.events)
+      }
+    } catch (error) {
+      console.error('Error fetching live feed events:', error)
+    } finally {
+      setLoading(false)
     }
-  ])
+  }
 
-  // Simulate real-time events
   useEffect(() => {
-    const interval = setInterval(() => {
-      const eventTypes: LiveEvent['type'][] = ['win', 'pack_open', 'jackpot', 'achievement']
-      const usernames = ['CryptoMaster', 'NeonWarrior', 'QuantumLord', 'StarCrusher', 'DiamondAce', 'CosmicGamer']
-      const games = ['Neon Crash', 'Cyber Slots', 'Quantum Dice', 'Holographic Roulette']
-      const items = ['Rare Avatar', 'Epic Badge', 'Legendary Title', 'Mythic Frame']
-
-      const newEvent: LiveEvent = {
-        id: Date.now().toString(),
-        type: eventTypes[Math.floor(Math.random() * eventTypes.length)],
-        username: usernames[Math.floor(Math.random() * usernames.length)],
-        timestamp: new Date()
-      }
-
-      if (newEvent.type === 'win' || newEvent.type === 'jackpot') {
-        newEvent.amount = Math.floor(Math.random() * 50000) + 1000
-        newEvent.game = games[Math.floor(Math.random() * games.length)]
-      } else if (newEvent.type === 'pack_open' || newEvent.type === 'achievement') {
-        newEvent.item = items[Math.floor(Math.random() * items.length)]
-      }
-
-      setEvents(prev => [newEvent, ...prev].slice(0, 10))
-    }, 5000)
-
+    fetchEvents()
+    
+    // Poll for new events every 5 seconds
+    const interval = setInterval(fetchEvents, 5000)
     return () => clearInterval(interval)
   }, [])
 
-  const getEventIcon = (type: LiveEvent['type']) => {
+
+  const getEventIcon = (type: LiveEvent['event_type']) => {
     switch (type) {
       case 'win':
         return <Trophy className="h-4 w-4 text-neon-yellow" />
+      case 'big_win':
+        return <Trophy className="h-4 w-4 text-neon-yellow" />
       case 'jackpot':
         return <Zap className="h-4 w-4 text-neon-blue" />
-      case 'pack_open':
-        return <Gift className="h-4 w-4 text-neon-purple" />
       case 'achievement':
         return <TrendingUp className="h-4 w-4 text-neon-green" />
       default:
@@ -103,42 +62,47 @@ const LiveFeed: React.FC = () => {
   }
 
   const getEventText = (event: LiveEvent) => {
-    switch (event.type) {
+    switch (event.event_type) {
       case 'win':
         return (
           <span>
             <span className="font-semibold text-neon-blue">{event.username}</span>
             {' won '}
-            <span className="font-bold text-neon-yellow">{formatCurrency(event.amount!)}</span>
+            <span className="font-bold text-neon-yellow">{formatCurrency(event.win_amount)}</span>
             {' on '}
-            <span className="text-neon-purple">{event.game}</span>
+            <span className="text-neon-purple">{event.game_name}</span>
+            {event.multiplier > 1 && (
+              <span className="text-neon-green ml-1">({event.multiplier}x)</span>
+            )}
+          </span>
+        )
+      case 'big_win':
+        return (
+          <span>
+            <span className="font-semibold text-neon-blue">{event.username}</span>
+            {' hit a BIG WIN! '}
+            <span className="font-bold text-neon-yellow">{formatCurrency(event.win_amount)}</span>
+            {' on '}
+            <span className="text-neon-purple">{event.game_name}</span>
+            <span className="text-neon-green ml-1">({event.multiplier}x)</span>
           </span>
         )
       case 'jackpot':
         return (
           <span>
             <span className="font-semibold text-neon-blue">{event.username}</span>
-            {' hit the jackpot! '}
-            <span className="font-bold text-neon-yellow">{formatCurrency(event.amount!)}</span>
+            {' hit the JACKPOT! '}
+            <span className="font-bold text-neon-yellow">{formatCurrency(event.win_amount)}</span>
             {' on '}
-            <span className="text-neon-purple">{event.game}</span>
-          </span>
-        )
-      case 'pack_open':
-        return (
-          <span>
-            <span className="font-semibold text-neon-blue">{event.username}</span>
-            {' found '}
-            <span className="font-bold text-neon-purple">{event.item}</span>
-            {' in a pack draw'}
+            <span className="text-neon-purple">{event.game_name}</span>
           </span>
         )
       case 'achievement':
         return (
           <span>
             <span className="font-semibold text-neon-blue">{event.username}</span>
-            {' earned '}
-            <span className="font-bold text-neon-green">{event.item}</span>
+            {' earned an achievement on '}
+            <span className="text-neon-purple">{event.game_name}</span>
           </span>
         )
       default:
@@ -175,8 +139,19 @@ const LiveFeed: React.FC = () => {
             </div>
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              <AnimatePresence>
-                {events.map((event, index) => (
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neon-blue"></div>
+                  <span className="ml-3 text-gray-400">Loading live events...</span>
+                </div>
+              ) : events.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <p>No recent activity</p>
+                  <p className="text-sm">Play games to see live events here!</p>
+                </div>
+              ) : (
+                <AnimatePresence>
+                  {events.map((event, index) => (
                   <motion.div
                     key={event.id}
                     initial={{ opacity: 0, x: -50, scale: 0.95 }}
@@ -187,7 +162,7 @@ const LiveFeed: React.FC = () => {
                   >
                     <div className="flex items-center space-x-3">
                       <div className="flex-shrink-0">
-                        {getEventIcon(event.type)}
+                        {getEventIcon(event.event_type)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white">
@@ -196,11 +171,12 @@ const LiveFeed: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-xs text-gray-400 ml-4 flex-shrink-0">
-                      {formatTime(event.timestamp)}
+                      {formatTime(new Date(event.created_at))}
                     </div>
                   </motion.div>
                 ))}
-              </AnimatePresence>
+                </AnimatePresence>
+              )}
             </div>
           </Card>
         </div>

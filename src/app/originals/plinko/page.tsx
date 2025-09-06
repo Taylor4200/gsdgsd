@@ -17,6 +17,7 @@ import { useGlobalNonceStore } from '@/store/gameStore'
 import { generatePlinkoResult, calculatePlinkoMultipliers } from '@/lib/rgsUtils'
 import { formatCurrency } from '@/lib/utils'
 import CasinoLayout from '@/components/layout/CasinoLayout'
+import { recordGameWin, recordGameLoss } from '@/lib/gameSessionManager'
 import {
   generateServerSeed,
   generateClientSeed,
@@ -294,7 +295,7 @@ const EdgePlinko: React.FC = () => {
   }
 
   // Handle ball entering bin
-  const handleBallEnterBin = (ball: Matter.Body) => {
+  const handleBallEnterBin = async (ball: Matter.Body) => {
     // Use the predetermined bin index from RGS system
     const predeterminedBinIndex = (ball as any).predeterminedBinIndex
     
@@ -354,6 +355,44 @@ const EdgePlinko: React.FC = () => {
         timestamp: new Date(),
         gameType: 'Plinko'
       })
+
+      // Record game session for live feed and raffle tracking
+      try {
+        if (user) {
+          if (won && payoutValue > 0) {
+            await recordGameWin(
+              user.id,
+              'plinko',
+              'Plinko',
+              betAmount,
+              payoutValue,
+              multiplier,
+              {
+                binIndex: binIndex,
+                rows: currentGame.rows,
+                difficulty: currentGame.difficulty,
+                predeterminedBinIndex: predeterminedBinIndex
+              }
+            )
+          } else {
+            await recordGameLoss(
+              user.id,
+              'plinko',
+              'Plinko',
+              betAmount,
+              multiplier,
+              {
+                binIndex: binIndex,
+                rows: currentGame.rows,
+                difficulty: currentGame.difficulty,
+                predeterminedBinIndex: predeterminedBinIndex
+              }
+            )
+          }
+        }
+      } catch (error) {
+        console.error('Error recording game session:', error)
+      }
 
       // Decrement active ball count
       setActiveBallCount(prev => {

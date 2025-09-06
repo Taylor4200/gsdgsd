@@ -33,6 +33,7 @@ import { useGameStatsStore } from '@/store/gameStatsStore'
 import { useGlobalNonceStore } from '@/store/gameStore'
 import { formatCurrency } from '@/lib/utils'
 import CasinoLayout from '@/components/layout/CasinoLayout'
+import { recordGameWin, recordGameLoss } from '@/lib/gameSessionManager'
 import {
   generateServerSeed,
   generateClientSeed,
@@ -314,6 +315,42 @@ const EdgeLimbo: React.FC = () => {
       timestamp: new Date(),
       gameType: 'limbo'
     })
+
+    // Record game session for live feed and raffle tracking
+    try {
+      if (won && payout > 0) {
+        await recordGameWin(
+          user.id,
+          'limbo',
+          'Limbo',
+          betAmount,
+          payout,
+          targetMultiplier,
+          {
+            result: result,
+            targetMultiplier: targetMultiplier,
+            crashPoint: result,
+            nonce: uniqueNonce
+          }
+        )
+      } else {
+        await recordGameLoss(
+          user.id,
+          'limbo',
+          'Limbo',
+          betAmount,
+          targetMultiplier,
+          {
+            result: result,
+            targetMultiplier: targetMultiplier,
+            crashPoint: result,
+            nonce: uniqueNonce
+          }
+        )
+      }
+    } catch (error) {
+      console.error('Error recording game session:', error)
+    }
 
     // Run ticker animation
     await runTickerAnimation(result)

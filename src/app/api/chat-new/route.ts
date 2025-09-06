@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { chatWebSocketManager } from '@/lib/chatWebSocketManager'
 
 // GET: Fetch messages or online users
 export async function GET(request: NextRequest) {
@@ -109,6 +110,17 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // Broadcast presence update via WebSocket
+      await chatWebSocketManager.broadcastPresenceUpdate({
+        user_id: userId,
+        username,
+        isOnline
+      })
+
+      // Get updated online count and broadcast it
+      const { data: count } = await supabase.rpc('get_online_users_count')
+      await chatWebSocketManager.broadcastOnlineCount(count || 0)
+
       return NextResponse.json({ success: true })
     }
 
@@ -194,6 +206,9 @@ export async function POST(request: NextRequest) {
       is_vip: profile.is_vip || false,
       is_mod: profile.is_mod || false
     }
+
+    // Broadcast the new message via WebSocket for real-time updates
+    await chatWebSocketManager.broadcastChatMessage(enhancedMessage)
 
     return NextResponse.json({
       success: true,
