@@ -163,7 +163,7 @@ const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <div 
-      className="fixed top-0 bg-[#0f1419] border-b border-[#2d3748] z-20 transition-all duration-300"
+      className="fixed top-0 bg-[#0f1419] border-b border-[#1a2332] z-20 transition-all duration-300"
       style={{ 
         left: isMobile ? 0 : (sidebarCollapsed ? 64 : 240),
         right: isMobile ? 0 : (chatOpen ? 320 : 0),
@@ -207,14 +207,14 @@ const TopBar: React.FC<TopBarProps> = ({
               onFocus={handleSearchFocus}
               onBlur={handleSearchBlur}
               placeholder="Search games..."
-              className="bg-[#1a2c38] border border-[#2d3748] rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#00d4ff] w-64"
+              className="bg-[#1a2332] border border-[#1a2332] rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#00d4ff] w-64"
             />
 
             {/* Search Results Dropdown */}
             {showSearchDropdown && searchResults.length > 0 && (
               <div
                 ref={searchDropdownRef}
-                className="absolute top-full mt-2 w-80 bg-[#1a2c38] border border-[#2d3748] rounded-lg shadow-2xl z-50 max-h-96 overflow-y-auto"
+                className="absolute top-full mt-2 w-80 bg-[#1a2332] border border-[#1a2332] rounded-lg shadow-2xl z-50 max-h-96 overflow-y-auto"
               >
                 <div className="p-2">
                   <div className="text-xs text-gray-400 mb-2 px-2">
@@ -225,12 +225,12 @@ const TopBar: React.FC<TopBarProps> = ({
                     <button
                       key={game.id}
                       onClick={() => handleGameSelect(game)}
-                      className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left hover:bg-[#2d3748] transition-colors ${
-                        index === selectedResultIndex ? 'bg-[#2d3748]' : ''
+                      className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left hover:bg-[#1a2332] transition-colors ${
+                        index === selectedResultIndex ? 'bg-[#1a2332]' : ''
                       }`}
                     >
                       {/* Game Image */}
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#2d3748] flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#1a2332] flex items-center justify-center">
                         <img
                           src={game.image}
                           alt={game.name}
