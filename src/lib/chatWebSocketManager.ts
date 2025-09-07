@@ -256,6 +256,91 @@ export class ChatWebSocketManager {
       console.error('Error broadcasting user offline:', error)
     }
   }
+
+  async broadcastWatchRequest(watchRequest: any): Promise<void> {
+    try {
+      await fetch('/api/websocket/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'watch_request',
+          data: watchRequest
+        }),
+      })
+    } catch (error) {
+      console.error('Error broadcasting watch request:', error)
+    }
+  }
+
+  async broadcastWatchSessionStart(watchSession: any): Promise<void> {
+    try {
+      await fetch('/api/websocket/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'watch_session_start',
+          data: watchSession
+        }),
+      })
+    } catch (error) {
+      console.error('Error broadcasting watch session start:', error)
+    }
+  }
+
+  async broadcastWatchPermissionGranted(watchPermission: any): Promise<void> {
+    try {
+      await fetch('/api/websocket/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'watch_permission_granted',
+          data: watchPermission
+        }),
+      })
+    } catch (error) {
+      console.error('Error broadcasting watch permission granted:', error)
+    }
+  }
+
+  async broadcastWatchRequestResponse(watchResponse: any): Promise<void> {
+    try {
+      await fetch('/api/websocket/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'watch_request_response',
+          data: watchResponse
+        }),
+      })
+    } catch (error) {
+      console.error('Error broadcasting watch request response:', error)
+    }
+  }
+
+  async broadcastWatchSessionEnd(watchSession: any): Promise<void> {
+    try {
+      await fetch('/api/websocket/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'watch_session_end',
+          data: watchSession
+        }),
+      })
+    } catch (error) {
+      console.error('Error broadcasting watch session end:', error)
+    }
+  }
 }
 
 // Export singleton instance
