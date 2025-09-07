@@ -95,7 +95,7 @@ export const useEfficientChat = (enabled: boolean = true) => {
 }
 
 export const useEfficientLiveFeed = (enabled: boolean = true) => {
-  return useEfficientRealtime('/api/live-feed/latest', 2000, enabled) // 2s for live feed
+  return useEfficientRealtime('/api/live-feed', 2000, enabled) // 2s for live feed
 }
 
 export const useEfficientGameUpdates = (gameId: string, enabled: boolean = true) => {

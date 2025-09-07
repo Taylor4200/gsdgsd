@@ -69,8 +69,8 @@ export const useVercelChat = (userId?: string, username?: string) => {
     // Initial fetch
     fetchMessages()
 
-    // Poll every 1 second for instant feel
-    intervalRef.current = setInterval(fetchMessages, 1000)
+    // Poll every 2 seconds for responsive feel
+    intervalRef.current = setInterval(fetchMessages, 2000)
 
     return () => {
       if (intervalRef.current) {

@@ -24,31 +24,73 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    // Mock live feed data for now (replace with real database query later)
+    const mockEvents = [
+      {
+        id: '1',
+        event_type: 'big_win',
+        username: 'LuckyPlayer',
+        game_name: 'Sweet Bonanza',
+        bet_amount: 100,
+        win_amount: 2500,
+        multiplier: 25,
+        is_featured: true,
+        created_at: new Date(Date.now() - 30000).toISOString()
+      },
+      {
+        id: '2',
+        event_type: 'jackpot',
+        username: 'HighRoller',
+        game_name: 'Gates of Olympus',
+        bet_amount: 500,
+        win_amount: 50000,
+        multiplier: 100,
+        is_featured: true,
+        created_at: new Date(Date.now() - 60000).toISOString()
+      },
+      {
+        id: '3',
+        event_type: 'win',
+        username: 'CasinoKing',
+        game_name: 'Book of Dead',
+        bet_amount: 50,
+        win_amount: 750,
+        multiplier: 15,
+        is_featured: false,
+        created_at: new Date(Date.now() - 90000).toISOString()
+      },
+      {
+        id: '4',
+        event_type: 'big_win',
+        username: 'SlotMaster',
+        game_name: 'Starburst',
+        bet_amount: 200,
+        win_amount: 4000,
+        multiplier: 20,
+        is_featured: true,
+        created_at: new Date(Date.now() - 120000).toISOString()
+      },
+      {
+        id: '5',
+        event_type: 'win',
+        username: 'GamePlayer',
+        game_name: 'Reactoonz',
+        bet_amount: 25,
+        win_amount: 375,
+        multiplier: 15,
+        is_featured: false,
+        created_at: new Date(Date.now() - 150000).toISOString()
+      }
+    ]
 
-    let query = supabase
-      .from('live_feed_events')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit)
-
-    if (userId) {
-      query = query.eq('user_id', userId)
-    }
-
-    const { data: events, error } = await query
-
-    if (error) {
-      console.error('Error fetching live feed:', error)
-      return NextResponse.json({ success: false, error: 'Failed to fetch events' })
-    }
+    // Filter by user if specified
+    const events = userId 
+      ? mockEvents.filter(event => event.username.toLowerCase().includes(userId.toLowerCase()))
+      : mockEvents.slice(0, limit)
 
     // Cache the result
     cache.set(cacheKey, {
-      data: events || [],
+      data: events,
       timestamp: Date.now()
     })
 
@@ -65,7 +107,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      events: events || [],
+      events: events,
       cached: false,
       timestamp: new Date().toISOString()
     })
