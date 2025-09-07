@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
     // Clean old cache entries
     if (cache.size > 100) {
       const now = Date.now()
-      for (const [key, value] of cache.entries()) {
+      const entries = Array.from(cache.entries())
+      for (const [key, value] of entries) {
         if (now - value.timestamp > CACHE_TTL * 2) {
           cache.delete(key)
         }

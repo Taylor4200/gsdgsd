@@ -152,7 +152,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
       // Filter out messages older than 1 hour
       setMessages(prev => {
         const filtered = prev.filter(msg => {
-          const messageTime = new Date(msg.timestamp)
+          const messageTime = new Date(msg.created_at)
           return messageTime > oneHourAgo
         })
         
@@ -344,8 +344,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                     exit={{ opacity: 0, y: -10 }}
                     className={cn(
                       "flex items-start space-x-2 group p-2 rounded-lg transition-colors",
-                      msg.is_system 
-                        ? "bg-blue-500/10 border border-blue-500/20" 
+                      msg.message_type === 'system'
+                        ? "bg-blue-500/10 border border-blue-500/20"
                         : "hover:bg-gray-800/50"
                     )}
                   >

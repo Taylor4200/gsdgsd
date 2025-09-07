@@ -304,7 +304,7 @@ const CasinoHome: React.FC = () => {
                         {raffle ? raffle.title : 'Weekly Raffle'}
                       </h2>
                       <p className="text-gray-300 text-xs mb-1 leading-tight line-clamp-1">
-                        {raffle ? raffle.description : 'Earn tickets with every wager and compete for massive prizes!'}
+                        {(raffle as any)?.description || 'Earn tickets with every wager and compete for massive prizes!'}
                       </p>
 
                       {/* Prize breakdown for mobile - Dynamic from raffle data */}
@@ -372,7 +372,7 @@ const CasinoHome: React.FC = () => {
                             {raffle ? raffle.title : 'Weekly Raffle'}
                           </h2>
                           <p className="text-gray-300 text-sm leading-relaxed">
-                            {raffle ? raffle.description : 'Earn tickets with every wager and compete for massive prizes! Join thousands of players in our biggest weekly event.'}
+                            {(raffle as any)?.description || 'Earn tickets with every wager and compete for massive prizes! Join thousands of players in our biggest weekly event.'}
                           </p>
                         </div>
 

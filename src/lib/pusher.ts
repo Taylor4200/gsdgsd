@@ -31,4 +31,5 @@ export const EVENTS = {
   CHAT_PRESENCE: 'chat-presence',
   LIVE_FEED_EVENT: 'live-feed-event',
   GAME_SESSION: 'game-session',
+  CRITICAL_ALERT: 'critical-alert',
 } as const

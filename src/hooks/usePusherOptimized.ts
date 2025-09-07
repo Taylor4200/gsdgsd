@@ -6,7 +6,7 @@ import { pusherClient, CHANNELS, EVENTS } from '@/lib/pusher'
 // Global connection manager to prevent multiple connections
 class PusherConnectionManager {
   private static instance: PusherConnectionManager
-  private connections: Map<string, any> = new Map()
+  public connections: Map<string, any> = new Map()
   private subscribers: Map<string, Set<(event: string, data: any) => void>> = new Map()
   private isConnected = false
 
