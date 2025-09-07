@@ -65,7 +65,7 @@ export default function CasinoPage() {
       <div className="p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Casino Games</h1>
+          <h1 className="text-3xl font-bold font-mono tracking-wider text-white mb-2">Casino Games</h1>
           <p className="text-gray-400">Thousands of games from top providers</p>
         </div>
 
@@ -95,7 +95,7 @@ export default function CasinoPage() {
                 variant={selectedCategory === category.id ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex-shrink-0 ${
+                className={`flex-shrink-0 font-mono tracking-wide ${
                   selectedCategory === category.id 
                     ? 'bg-[#00d4ff] text-black' 
                     : 'text-gray-400 hover:text-white'

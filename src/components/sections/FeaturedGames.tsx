@@ -40,7 +40,7 @@ const FeaturedGames: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold font-futuristic mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold font-mono tracking-wider mb-4">
             <span className="neon-text-blue">FEATURED</span>{' '}
             <span className="text-white">GAMES</span>
           </h2>

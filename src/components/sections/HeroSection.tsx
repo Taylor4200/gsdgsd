@@ -67,7 +67,7 @@ const HeroSection: React.FC = () => {
         >
           {/* Main Headline */}
           <motion.div variants={itemVariants} className="mb-8">
-            <h1 className="text-6xl md:text-8xl font-bold font-futuristic mb-4">
+            <h1 className="text-6xl md:text-8xl font-bold font-mono tracking-wider mb-4">
               <span className="neon-text-blue">NEXUS</span>
               <br />
               <span className="bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue bg-clip-text text-transparent">

@@ -11,8 +11,24 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'active'
-    const includeEnded = searchParams.get('includeEnded') === 'true'
 
+    // First check if raffles table exists by trying a simple query
+    const { data: tableCheck, error: tableError } = await supabase
+      .from('raffles')
+      .select('id')
+      .limit(1)
+
+    if (tableError) {
+      console.error('❌ Error checking raffles table:', tableError)
+      // If table doesn't exist (42703) or any other error, return empty array
+      if (tableError.code === '42703' || tableError.message?.includes('does not exist')) {
+        console.log('📝 Raffles table does not exist yet, returning empty array')
+        return NextResponse.json({ raffles: [] })
+      }
+      return NextResponse.json({ error: 'Failed to fetch raffles' }, { status: 500 })
+    }
+
+    // If table exists, proceed with full query
     let query = supabase
       .from('raffles')
       .select(`
@@ -22,22 +38,48 @@ export async function GET(request: NextRequest) {
       `)
       .order('created_at', { ascending: false })
 
-    if (!includeEnded) {
-      query = query.neq('status', 'ended')
-    }
-
-    if (status !== 'all') {
-      query = query.eq('status', status)
+    // Add filtering if table exists and has is_active column
+    if (status === 'active') {
+      query = query.eq('is_active', true)
+    } else if (status === 'inactive') {
+      query = query.eq('is_active', false)
     }
 
     const { data: raffles, error } = await query
 
     if (error) {
       console.error('❌ Error fetching raffles:', error)
+      // If column doesn't exist, return empty array
+      if (error.code === '42703' || error.message?.includes('does not exist')) {
+        console.log('📝 Raffles table missing columns, returning empty array')
+        return NextResponse.json({ raffles: [] })
+      }
       return NextResponse.json({ error: 'Failed to fetch raffles' }, { status: 500 })
     }
 
-    return NextResponse.json({ raffles })
+    // Map database fields to frontend expected fields
+    const mappedRaffles = raffles?.map(raffle => ({
+      ...raffle,
+      title: raffle.name || raffle.title, // Map name -> title (fallback to title)
+      end_date: raffle.end_time || raffle.end_date, // Map end_time -> end_date (fallback to end_date)
+      status: raffle.is_active ? 'active' : 'inactive', // Map is_active -> status
+      // Keep total_prize_pool as is (database field matches frontend expectation)
+      total_prize_pool: raffle.total_prize_pool,
+      tickets_sold: raffle.tickets_sold,
+      max_tickets: raffle.max_tickets
+    })) || []
+
+    console.log('✅ Raffles fetched:', mappedRaffles?.length || 0)
+    console.log('📊 Sample raffle data:', mappedRaffles?.[0] ? {
+      id: mappedRaffles[0].id,
+      title: mappedRaffles[0].title,
+      total_prize_pool: mappedRaffles[0].total_prize_pool,
+      tickets_sold: mappedRaffles[0].tickets_sold,
+      max_tickets: mappedRaffles[0].max_tickets,
+      raffle_prizes: mappedRaffles[0].raffle_prizes?.length || 0,
+      raw_data: mappedRaffles[0] // Show all fields to debug
+    } : 'No raffles')
+    return NextResponse.json({ raffles: mappedRaffles })
   } catch (error) {
     console.error('❌ Error in raffles GET API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

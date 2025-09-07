@@ -35,7 +35,7 @@ export default function OriginalsPage() {
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">
             <Crown className="h-8 w-8 text-[#00d4ff]" />
-            <h1 className="text-3xl font-bold text-white">Edge Originals</h1>
+            <h1 className="text-3xl font-bold font-mono tracking-wider text-white">Edge Originals</h1>
           </div>
           <p className="text-gray-400 text-lg">
             Exclusive games designed and built by our team. Provably fair, lightning fast, and uniquely ours.
@@ -94,7 +94,7 @@ export default function OriginalsPage() {
           <div className="relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-bold text-white mb-2">
+                <h2 className="text-3xl font-bold font-mono tracking-wider text-white mb-2">
                   Provably Fair Gaming
                 </h2>
                 <p className="text-white/80 text-lg mb-4">
@@ -138,7 +138,7 @@ export default function OriginalsPage() {
         {/* Bottom CTA */}
         <div className="text-center mt-12 p-8">
           <Crown className="h-12 w-12 text-[#00d4ff] mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">More Originals Coming Soon</h3>
+          <h3 className="text-xl font-bold font-mono tracking-wider text-white mb-2">More Originals Coming Soon</h3>
           <p className="text-gray-400 mb-4">
             We're constantly developing new and innovative games exclusively for our platform.
           </p>

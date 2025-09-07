@@ -19,6 +19,7 @@ interface RewardItem {
 const RewardsSection: React.FC = () => {
   const [weeklyTimeLeft, setWeeklyTimeLeft] = useState('6d 14h 32m');
   const [monthlyTimeLeft, setMonthlyTimeLeft] = useState('23d 8h 15m');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Simulate countdown timers
   useEffect(() => {
@@ -74,104 +75,92 @@ const RewardsSection: React.FC = () => {
     };
   }, []);
 
-  const rewards: RewardItem[] = [
-    {
-      id: 'login',
-      title: 'Login Bonus',
-      icon: <Gift className="w-4 h-4" />,
-      amount: '$2.50',
-      available: true,
-      claimed: false,
-      description: 'Daily login reward',
-      type: 'login'
-    },
-    {
-      id: 'weekly-rakeback',
-      title: 'Weekly Rakeback',
-      icon: <Calendar className="w-4 h-4" />,
-      amount: '$25.00',
-      available: false,
-      claimed: false,
-      timer: weeklyTimeLeft,
-      description: 'Weekly rakeback bonus',
-      type: 'weekly'
-    },
-    {
-      id: 'monthly-rakeback',
-      title: 'Monthly Rakeback',
-      icon: <Trophy className="w-4 h-4" />,
-      amount: '$100.00',
-      available: false,
-      claimed: false,
-      timer: monthlyTimeLeft,
-      description: 'Monthly rakeback bonus',
-      type: 'monthly'
-    }
-  ];
-
   const handleClaimReward = (rewardId: string) => {
     console.log(`Claiming reward: ${rewardId}`);
     // TODO: Implement actual claim logic
   };
 
   return (
-    <div className="relative z-10 flex flex-col h-full">
-        <div className="flex items-center mb-2">
-          <Gift className="w-4 h-4 text-[#00d4ff] mr-2" />
-          <h3 className="text-sm font-bold text-white">Rewards Center</h3>
-        </div>
+    <div className="relative z-10 flex flex-col h-full overflow-hidden">
+      <div className="flex items-center mb-1 md:mb-3">
+        <Gift className="w-2 h-2 md:w-4 md:h-4 text-[#00d4ff] mr-1 md:mr-2" />
+        <h3 className="text-xs md:text-sm font-bold text-white truncate">Rewards Center</h3>
+      </div>
 
-      <div className="space-y-1.5">
-        {rewards.map((reward) => (
-          <div
-            key={reward.id}
-            className="bg-black/30 backdrop-blur-sm rounded-lg p-1.5 border border-[#00d4ff]/20 hover:border-[#00d4ff]/40 transition-all duration-200"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center space-x-2">
-                <div className="text-[#00d4ff]">{reward.icon}</div>
-                <div>
-                  <div className="text-white font-semibold text-xs">{reward.title}</div>
-                  <div className="text-gray-400 text-xs">{reward.description}</div>
+      <div className="flex-1 flex flex-col justify-between overflow-hidden">
+        <div className="space-y-0.5 md:space-y-2 overflow-hidden">
+          {/* Login Bonus - Big Bar */}
+          <div className="bg-black/30 backdrop-blur-sm rounded-lg p-1 md:p-2 border border-[#00d4ff]/20 hover:border-[#00d4ff]/40 transition-all duration-200 overflow-hidden">
+            <div className="flex items-center justify-between mb-0.5 md:mb-2">
+              <div className="flex items-center space-x-1 md:space-x-2 min-w-0 flex-1">
+                <div className="text-[#00d4ff] flex-shrink-0"><Gift className="w-2 h-2 md:w-4 md:h-4" /></div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-white font-semibold text-xs md:text-sm truncate">Login Bonus</div>
+                  <div className="text-gray-400 text-xs truncate">Daily login reward</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-green-400 font-bold text-xs">{reward.amount}</div>
-                {reward.timer && (
-                  <div className="flex items-center text-[#00d4ff] text-xs">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {reward.timer}
-                  </div>
-                )}
+              <div className="text-right flex-shrink-0">
+                <div className="text-green-400 font-bold text-xs md:text-sm">$2.50</div>
+              </div>
+            </div>
+            <Button
+              onClick={() => handleClaimReward('login')}
+              className="w-full text-xs md:text-sm py-1 md:py-2 h-4 md:h-8 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] hover:from-[#00d4ff]/90 hover:to-[#0099cc]/90 text-black font-bold rounded-md transition-all duration-200"
+            >
+              Claim Reward
+            </Button>
+          </div>
+
+          {/* Rakeback Section - Three Smaller Bars */}
+          <div className="grid grid-cols-3 gap-1 md:gap-1.5">
+            {/* Rakeback */}
+            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-1 md:p-1.5 border border-[#00d4ff]/20 hover:border-[#00d4ff]/40 transition-all duration-200 overflow-hidden">
+              <div className="text-center mb-0.5 md:mb-1">
+                <div className="text-[#00d4ff] mb-0"><Zap className="w-2 h-2 md:w-4 md:h-4 mx-auto" /></div>
+                <div className="text-white font-semibold text-xs truncate">Rakeback</div>
+                <div className="text-green-400 font-bold text-xs truncate">$5.00</div>
+              </div>
+              <div className="w-full text-center py-0 md:py-1 h-3 md:h-6 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] hover:from-[#00d4ff]/90 hover:to-[#0099cc]/90 text-black font-bold text-xs rounded-md flex items-center justify-center cursor-pointer">
+                Claim
               </div>
             </div>
 
-            {reward.available ? (
-              <Button
-                onClick={() => handleClaimReward(reward.id)}
-                className="w-full text-xs py-1 h-6 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] hover:from-[#00d4ff]/90 hover:to-[#0099cc]/90 text-black font-bold rounded-md transition-all duration-200"
-                disabled={reward.claimed}
-              >
-                {reward.claimed ? '✅ Claimed' : 'Claim Reward'}
-              </Button>
-            ) : (
-              <div className="w-full text-center py-1 h-6 bg-gray-600/50 text-gray-400 text-xs rounded-md flex items-center justify-center">
-                {reward.timer ? `Available in ${reward.timer}` : 'Coming Soon'}
+            {/* Weekly Rakeback */}
+            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-1 md:p-1.5 border border-[#00d4ff]/20 hover:border-[#00d4ff]/40 transition-all duration-200 overflow-hidden">
+              <div className="text-center mb-0.5 md:mb-1">
+                <div className="text-[#00d4ff] mb-0"><Calendar className="w-2 h-2 md:w-4 md:h-4 mx-auto" /></div>
+                <div className="text-white font-semibold text-xs truncate">Weekly</div>
+                <div className="text-green-400 font-bold text-xs truncate">$25.00</div>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
+              <div className="w-full text-center py-0 md:py-1 h-3 md:h-6 bg-gray-600/50 text-gray-400 text-xs rounded-md flex items-center justify-center">
+                <span className="truncate">{weeklyTimeLeft.split(' ')[0]}</span>
+              </div>
+            </div>
 
-      {/* XP Progress to Next Rank */}
-      <div className="mt-1 pt-0.5 border-t border-[#00d4ff]/20">
-        <div className="text-xs text-gray-400">XP to Next Rank</div>
-        <div className="w-full bg-gray-700 rounded-full h-1">
-          <div className="bg-gradient-to-r from-[#00d4ff] to-[#0099cc] h-1 rounded-full transition-all duration-500" style={{width: '78%'}}></div>
+            {/* Monthly Rakeback */}
+            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-1 md:p-1.5 border border-[#00d4ff]/20 hover:border-[#00d4ff]/40 transition-all duration-200 overflow-hidden">
+              <div className="text-center mb-0.5 md:mb-1">
+                <div className="text-[#00d4ff] mb-0"><Trophy className="w-2 h-2 md:w-4 md:h-4 mx-auto" /></div>
+                <div className="text-white font-semibold text-xs truncate">Monthly</div>
+                <div className="text-green-400 font-bold text-xs truncate">$100</div>
+              </div>
+              <div className="w-full text-center py-0 md:py-1 h-3 md:h-6 bg-gray-600/50 text-gray-400 text-xs rounded-md flex items-center justify-center">
+                <span className="truncate">{monthlyTimeLeft.split(' ')[0]}</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-400">7,800 / 10,000 XP</span>
-          <span className="text-[#00d4ff]">Bronze → Silver</span>
+
+        {/* XP Progress to Next Rank - Positioned at bottom */}
+        <div className="mt-auto pt-0.5 md:pt-1 border-t border-[#00d4ff]/20 overflow-hidden">
+          <div className="text-xs text-gray-400 truncate">XP to Next Rank</div>
+          <div className="w-full bg-gray-700 rounded-full h-1">
+            <div className="bg-gradient-to-r from-[#00d4ff] to-[#0099cc] h-1 rounded-full transition-all duration-500" style={{width: '78%'}}></div>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-400 truncate">7,800 / 10,000 XP</span>
+            <span className="text-[#00d4ff] truncate">Bronze → Silver</span>
+          </div>
         </div>
       </div>
     </div>

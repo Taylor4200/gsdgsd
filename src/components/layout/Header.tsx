@@ -55,7 +55,7 @@ const Header: React.FC = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-neon-blue to-neon-purple rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">N</span>
             </div>
-            <span className="text-2xl font-bold font-futuristic neon-text-blue">
+            <span className="text-2xl font-bold font-mono tracking-wider neon-text-blue">
               NEXUS
             </span>
           </motion.div>
@@ -66,7 +66,7 @@ const Header: React.FC = () => {
               <motion.a
                 key={item.name}
                 href={item.href}
-                className="text-gray-300 hover:text-neon-blue transition-colors duration-200 font-medium"
+                className="text-gray-300 hover:text-neon-blue transition-colors duration-200 font-medium font-mono tracking-wide"
                 whileHover={{ y: -2 }}
               >
                 {item.name}
@@ -206,7 +206,7 @@ const Header: React.FC = () => {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-gray-300 hover:text-neon-blue transition-colors duration-200 font-medium"
+                  className="text-gray-300 hover:text-neon-blue transition-colors duration-200 font-medium font-mono tracking-wide"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.name}
