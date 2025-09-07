@@ -24,7 +24,9 @@ import {
   ChevronDown,
   MessageCircle,
   Award,
-  Eye
+  Eye,
+  Menu,
+  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
@@ -53,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   
   const mainItems = [
     { icon: Home, label: 'Home', href: '/' },
-    { icon: Dice1, label: 'Casino', href: '/casino', count: 35419 },
+    { icon: Dice1, label: 'Casino', href: '/casino', count: 35419, hasSubmenu: true },
     { icon: TrendingUp, label: 'Live', href: '/live', count: 7783 },
     { icon: Gamepad2, label: 'Originals', href: '/originals' },
     { icon: Star, label: 'Favorites', href: '/favorites' },
@@ -62,6 +64,18 @@ const Sidebar: React.FC<SidebarProps> = ({
     { icon: Users, label: 'Refer', href: '/referrals', badge: 'EARN' },
     { icon: Target, label: 'Challenges', href: '/challenges' },
     { icon: Crown, label: 'Rewards', href: '/rewards' },
+  ]
+
+  const casinoSubItems = [
+    { label: 'All Games', href: '/casino', count: 35419 },
+    { label: 'Slots', href: '/casino?category=slots', count: 12450 },
+    { label: 'Live Casino', href: '/casino?category=live', count: 89 },
+    { label: 'Table Games', href: '/casino?category=table', count: 156 },
+    { label: 'Blackjack', href: '/casino?category=blackjack', count: 23 },
+    { label: 'Roulette', href: '/casino?category=roulette', count: 34 },
+    { label: 'Baccarat', href: '/casino?category=baccarat', count: 12 },
+    { label: 'Popular', href: '/casino?category=popular', count: 89 },
+    { label: 'New Games', href: '/casino?category=new', count: 45 },
   ]
 
   const socialItems = [
@@ -95,12 +109,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <motion.div
       initial={false}
-      animate={{ width: collapsed ? 64 : 240 }}
+      animate={{ width: collapsed ? 60 : 240 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className={`${isMobile ? 'w-70' : ''} fixed left-0 top-0 h-full bg-[#1a2c38] border-r border-[#2d3748] z-30 flex flex-col`}
+      className={`${isMobile ? 'w-70' : ''} fixed left-0 top-0 h-full bg-[#0f1419] border-r border-[#1a2332] z-30 flex flex-col shadow-2xl overflow-visible`}
     >
       {/* Logo Section */}
-      <div className="p-4 border-b border-[#2d3748] flex items-center justify-between">
+      <div className="p-3 border-b border-[#1a2332] flex items-center justify-between">
         <Link href="/" className="block">
           {collapsed ? (
             <div className="w-8 h-8 flex items-center justify-center">
@@ -111,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <img 
                 src="/Logo11.png" 
                 alt="EDGE Originals" 
@@ -122,92 +136,131 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </Link>
         
-        {/* Toggle Button - Only show when expanded on desktop */}
-        {!isMobile && !collapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleToggleCollapse}
-            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-white/10"
-            title="Collapse Sidebar"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-        )}
+        {/* Toggle Button */}
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 py-4 overflow-hidden">
-        <nav className="space-y-2">
+      <div className="flex-1 py-2 overflow-visible">
+        <nav className="space-y-1 overflow-visible">
           {/* Main Items */}
           {mainItems.map((item) => {
             const isActive = pathname === item.href
+            const hasSubmenu = item.hasSubmenu && item.label === 'Casino'
+            
             return (
-              <motion.a
-                key={item.label}
-                href={item.href}
-                whileHover={{ x: collapsed ? 0 : 4 }}
-                className={cn(
-                  'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 relative group',
-                  isActive 
-                    ? 'text-[#00d4ff] bg-[#00d4ff]/10 border-r-2 border-[#00d4ff]' 
-                    : 'text-gray-300 hover:text-white hover:bg-white/5'
-                )}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                
-                {!collapsed && (
-                  <>
-                    <span className="ml-3 truncate">{item.label}</span>
-                    
-                    {item.count && (
-                      <span className="ml-auto text-xs text-green-400 font-medium">
-                        {item.count.toLocaleString()}
-                      </span>
+              <div key={item.label}>
+                <Link href={hasSubmenu ? '#' : item.href}>
+                  <motion.div
+                    whileHover={{ x: collapsed ? 0 : 4 }}
+                    className={cn(
+                      'flex items-center px-3 py-3 text-sm font-medium transition-all duration-200 relative group rounded-md mx-2 cursor-pointer',
+                      isActive 
+                        ? 'text-[#00d4ff] bg-[#00d4ff]/15 border-r-2 border-[#00d4ff] shadow-lg' 
+                        : 'text-gray-300 hover:text-white hover:bg-[#1a2332] hover:shadow-md'
                     )}
+                    onClick={hasSubmenu ? (e) => {
+                      e.preventDefault()
+                      toggleSection(item.label)
+                    } : undefined}
+                  >
+                    <item.icon className={cn(
+                      "flex-shrink-0 transition-colors duration-200",
+                      collapsed ? "h-5 w-5" : "h-5 w-5",
+                      isActive ? "text-[#00d4ff]" : "text-gray-400 group-hover:text-white"
+                    )} />
                     
-                    {item.badge && (
-                      <span className={`ml-auto text-xs px-2 py-1 rounded-full font-bold ${
-                        item.badge === 'EARN' 
-                          ? 'bg-green-500 text-black' 
-                          : 'bg-[#00d4ff] text-black'
-                      }`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
-                )}
+                    {!collapsed && (
+                      <>
+                        <span className="ml-3 truncate font-medium">{item.label}</span>
+                        
+                        {item.count && (
+                          <span className="ml-auto text-xs text-green-400 font-semibold bg-green-400/10 px-2 py-1 rounded-full">
+                            {item.count.toLocaleString()}
+                          </span>
+                        )}
+                        
+                        {item.badge && (
+                          <span className={`ml-auto text-xs px-2 py-1 rounded-full font-bold ${
+                            item.badge === 'EARN' 
+                              ? 'bg-green-500 text-black' 
+                              : 'bg-[#00d4ff] text-black'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
 
-                {/* Enhanced Tooltip for collapsed state */}
-                {collapsed && (
-                  <div className="absolute left-full ml-2 px-3 py-2 bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg border border-white/10">
-                    <div className="font-medium">{item.label}</div>
-                    {item.count && (
-                      <div className="text-green-400 text-xs mt-1">
-                        {item.count.toLocaleString()} games
+                        {hasSubmenu && (
+                          <ChevronDown className={cn(
+                            "h-4 w-4 ml-2 transition-transform duration-200",
+                            expandedSections.has(item.label) ? 'rotate-180' : ''
+                          )} />
+                        )}
+                      </>
+                    )}
+
+                    {/* Enhanced Stake-like Tooltip for collapsed state */}
+                    {collapsed && (
+                      <div className="absolute left-full ml-4 px-4 py-3 bg-[#0a0a0a] backdrop-blur-md text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[9999] shadow-2xl border border-[#2a2a2a] transform translate-x-0">
+                        <div className="font-semibold text-[#00d4ff]">{item.label}</div>
+                        {item.count && (
+                          <div className="text-green-400 text-xs mt-1 font-medium">
+                            {item.count.toLocaleString()} games
+                          </div>
+                        )}
+                        {item.badge && (
+                          <div className={`text-xs mt-1 px-2 py-1 rounded-full font-bold ${
+                            item.badge === 'EARN' 
+                              ? 'bg-green-500 text-black' 
+                              : 'bg-[#00d4ff] text-black'
+                          }`}>
+                            {item.badge}
+                          </div>
+                        )}
+                        {/* Arrow pointing to sidebar */}
+                        <div className="absolute left-[-8px] top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[8px] border-b-[8px] border-r-[8px] border-transparent border-r-[#0a0a0a]"></div>
                       </div>
                     )}
-                    {item.badge && (
-                      <div className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                        item.badge === 'EARN' 
-                          ? 'bg-green-500 text-black' 
-                          : 'bg-[#00d4ff] text-black'
-                      }`}>
-                        {item.badge}
-                      </div>
-                    )}
-                  </div>
+                  </motion.div>
+                </Link>
+
+                {/* Casino Submenu */}
+                {hasSubmenu && expandedSections.has(item.label) && !collapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="ml-6 mt-2 space-y-1"
+                  >
+                    {casinoSubItems.map((subItem) => (
+                      <Link key={subItem.label} href={subItem.href}>
+                        <motion.div
+                          whileHover={{ x: 2 }}
+                          className={cn(
+                            "flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 cursor-pointer",
+                            pathname === subItem.href
+                              ? 'text-[#00d4ff] bg-[#00d4ff]/10' 
+                              : 'text-gray-400 hover:text-white hover:bg-[#1a2332]'
+                          )}
+                        >
+                          <span className="flex-1">{subItem.label}</span>
+                          <span className="ml-2 px-1.5 py-0.5 bg-[#1a2332] text-xs rounded-full text-gray-500">
+                            {subItem.count.toLocaleString()}
+                          </span>
+                        </motion.div>
+                      </Link>
+                    ))}
+                  </motion.div>
                 )}
-              </motion.a>
+              </div>
             )
           })}
 
           {/* Social Section */}
           {!collapsed && (
-            <div className="mt-4">
+            <div className="mt-6 mx-2">
               <button
                 onClick={() => toggleSection('social')}
-                className="flex items-center w-full px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-white transition-colors"
+                className="flex items-center w-full px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-white transition-all duration-200 rounded-md hover:bg-[#1a2332]"
               >
                 <Users className="h-4 w-4 mr-2" />
                 Social
@@ -234,12 +287,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                             onClick={item.onClick}
                             whileHover={{ x: 4 }}
                             className={cn(
-                              'flex items-center px-4 py-2 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
-                              'text-gray-300 hover:text-white hover:bg-white/5'
+                              'flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 relative group w-full text-left rounded-md',
+                              'text-gray-300 hover:text-white hover:bg-[#1a2332] hover:shadow-md'
                             )}
                           >
                             <item.icon className="h-4 w-4 flex-shrink-0" />
-                            <span className="ml-3 truncate">{item.label}</span>
+                            <span className="ml-3 truncate font-medium">{item.label}</span>
                             
                             {item.badge && (
                               <span className={`ml-auto text-xs px-2 py-1 rounded-full font-bold ${
@@ -270,17 +323,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onClick={item.onClick}
                     whileHover={{ x: 0 }}
                     className={cn(
-                      'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 relative group w-full text-left',
-                      'text-gray-300 hover:text-white hover:bg-white/5'
+                      'flex items-center px-3 py-3 text-sm font-medium transition-all duration-200 relative group w-full text-left rounded-md mx-2',
+                      'text-gray-300 hover:text-white hover:bg-[#1a2332] hover:shadow-md'
                     )}
                   >
                     <item.icon className="h-5 w-5 flex-shrink-0" />
                     
-                    {/* Enhanced Tooltip for collapsed state */}
-                    <div className="absolute left-full ml-2 px-3 py-2 bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg border border-white/10">
-                      <div className="font-medium">{item.label}</div>
+                    {/* Enhanced Stake-like Tooltip for collapsed state */}
+                    <div className="absolute left-full ml-4 px-4 py-3 bg-[#0a0a0a] backdrop-blur-md text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[9999] shadow-2xl border border-[#2a2a2a] transform translate-x-0">
+                      <div className="font-semibold text-[#00d4ff]">{item.label}</div>
                       {item.badge && (
-                        <div className={`text-xs mt-1 px-1 py-0.5 rounded ${
+                        <div className={`text-xs mt-1 px-2 py-1 rounded-full font-bold ${
                           item.badge === 'EARN' 
                             ? 'bg-green-500 text-black' 
                             : 'bg-[#00d4ff] text-black'
@@ -288,6 +341,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                           {item.badge}
                         </div>
                       )}
+                      {/* Arrow pointing to sidebar */}
+                      <div className="absolute left-[-8px] top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[8px] border-b-[8px] border-r-[8px] border-transparent border-r-[#0a0a0a]"></div>
                     </div>
                   </motion.button>
                 )
@@ -298,35 +353,41 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Bottom Items */}
-      <div className="border-t border-[#2d3748] py-4">
-        <nav className="space-y-1">
+      <div className="border-t border-[#1a2332] py-2 overflow-visible">
+        <nav className="space-y-1 overflow-visible">
           {bottomItems.map((item) => {
             const isActive = pathname === item.href
             return (
-              <motion.a
-                key={item.label}
-                href={item.href}
-                whileHover={{ x: collapsed ? 0 : 4 }}
-                className={cn(
-                  'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 relative group',
-                  isActive 
-                    ? 'text-[#00d4ff] bg-[#00d4ff]/10 border-r-2 border-[#00d4ff]' 
-                    : 'text-gray-300 hover:text-white hover:bg-white/5'
-                )}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                
-                {!collapsed && (
-                  <span className="ml-3 truncate">{item.label}</span>
-                )}
+              <Link key={item.label} href={item.href}>
+                <motion.div
+                  whileHover={{ x: collapsed ? 0 : 4 }}
+                  className={cn(
+                    'flex items-center px-3 py-3 text-sm font-medium transition-all duration-200 relative group rounded-md mx-2 cursor-pointer',
+                    isActive 
+                      ? 'text-[#00d4ff] bg-[#00d4ff]/15 border-r-2 border-[#00d4ff] shadow-lg' 
+                      : 'text-gray-300 hover:text-white hover:bg-[#1a2332] hover:shadow-md'
+                  )}
+                >
+                  <item.icon className={cn(
+                    "flex-shrink-0 transition-colors duration-200",
+                    "h-5 w-5",
+                    isActive ? "text-[#00d4ff]" : "text-gray-400 group-hover:text-white"
+                  )} />
+                  
+                  {!collapsed && (
+                    <span className="ml-3 truncate font-medium">{item.label}</span>
+                  )}
 
-                {/* Enhanced Tooltip for collapsed state */}
-                {collapsed && (
-                  <div className="absolute left-full ml-2 px-3 py-2 bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg border border-white/10">
-                    {item.label}
-                  </div>
-                )}
-              </motion.a>
+                  {/* Enhanced Stake-like Tooltip for collapsed state */}
+                  {collapsed && (
+                    <div className="absolute left-full ml-4 px-4 py-3 bg-[#0a0a0a] backdrop-blur-md text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[9999] shadow-2xl border border-[#2a2a2a] transform translate-x-0">
+                      <div className="font-semibold text-[#00d4ff]">{item.label}</div>
+                      {/* Arrow pointing to sidebar */}
+                      <div className="absolute left-[-8px] top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[8px] border-b-[8px] border-r-[8px] border-transparent border-r-[#0a0a0a]"></div>
+                    </div>
+                  )}
+                </motion.div>
+              </Link>
             )
           })}
         </nav>
