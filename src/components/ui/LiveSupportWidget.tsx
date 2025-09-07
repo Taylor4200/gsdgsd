@@ -483,7 +483,7 @@ const LiveSupportWidget: React.FC<LiveSupportWidgetProps> = () => {
              {/* Floating Support Button - Only show when triggered from dropdown */}
        {showLiveSupport && (
          <motion.div
-           className="fixed bottom-6 right-6 z-50 transition-all duration-300"
+           className="fixed bottom-6 right-6 md:bottom-6 md:right-6 sm:bottom-20 sm:right-4 z-50 transition-all duration-300"
            initial={{ scale: 0 }}
            animate={{ scale: 1 }}
            transition={{ delay: 0.1, type: "spring", stiffness: 260, damping: 20 }}
@@ -509,13 +509,138 @@ const LiveSupportWidget: React.FC<LiveSupportWidgetProps> = () => {
       {/* Support Widget Modal */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.8, opacity: 0, y: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-24 right-6 z-50 bg-white rounded-2xl shadow-2xl w-80 max-h-[600px] overflow-hidden"
-          >
+          <>
+            {/* Mobile Full Screen Modal */}
+            <div className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[80vh] overflow-hidden"
+              >
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#1e3a8a] to-[#3b82f6] p-4 relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <img 
+                        src="/Logo11.png" 
+                        alt="Edge Casino" 
+                        className="w-8 h-8 rounded-full"
+                      />
+                      <div>
+                        <h3 className="text-white font-bold text-lg">Live Support</h3>
+                        <p className="text-blue-200 text-sm">We're here to help!</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsOpen(false)}
+                      className="text-white hover:bg-white/20"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  
+                  {/* Status */}
+                  <div className="flex items-center space-x-2 text-blue-200">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-sm">Online - Average response: 2 minutes</span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-4 max-h-[60vh] overflow-y-auto">
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <Button
+                      variant="outline"
+                      className="flex flex-col items-center p-3 h-auto"
+                      onClick={() => {/* Handle FAQ */}}
+                    >
+                      <HelpCircle className="h-6 w-6 mb-2 text-blue-600" />
+                      <span className="text-sm font-medium">FAQ</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex flex-col items-center p-3 h-auto"
+                      onClick={() => {/* Handle Contact */}}
+                    >
+                      <MessageCircle className="h-6 w-6 mb-2 text-blue-600" />
+                      <span className="text-sm font-medium">Chat</span>
+                    </Button>
+                  </div>
+
+                  {/* Support Options */}
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-gray-700 mb-2">How can we help?</div>
+                    
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-left p-3 h-auto"
+                      onClick={() => {/* Handle account help */}}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <User className="h-5 w-5 text-gray-600" />
+                        <div>
+                          <div className="font-medium">Account Issues</div>
+                          <div className="text-sm text-gray-500">Login, verification, profile</div>
+                        </div>
+                      </div>
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-left p-3 h-auto"
+                      onClick={() => {/* Handle payment help */}}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Settings className="h-5 w-5 text-gray-600" />
+                        <div>
+                          <div className="font-medium">Payment & Withdrawals</div>
+                          <div className="text-sm text-gray-500">Deposits, withdrawals, limits</div>
+                        </div>
+                      </div>
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-left p-3 h-auto"
+                      onClick={() => {/* Handle game help */}}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Star className="h-5 w-5 text-gray-600" />
+                        <div>
+                          <div className="font-medium">Games & Features</div>
+                          <div className="text-sm text-gray-500">Game rules, bonuses, features</div>
+                        </div>
+                      </div>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t border-gray-200">
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => {/* Start chat */}}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Start Live Chat
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Desktop Modal */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="hidden md:block fixed bottom-24 right-6 z-50 bg-white rounded-2xl shadow-2xl w-80 max-h-[600px] overflow-hidden"
+            >
             {/* Header */}
             <div className="bg-gradient-to-r from-[#1e3a8a] to-[#3b82f6] p-4 relative">
               <div className="flex items-center justify-between mb-3">
@@ -585,7 +710,8 @@ const LiveSupportWidget: React.FC<LiveSupportWidgetProps> = () => {
                 </div>
               </div>
             )}
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

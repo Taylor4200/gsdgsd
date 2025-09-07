@@ -52,6 +52,46 @@ export interface SocialBettingSession {
   watcher_profile?: UserProfile
 }
 
+export interface WatchPermission {
+  id: string
+  watcher_id: string
+  watched_id: string
+  granted_at: Date
+  is_active: boolean
+  permissions: {
+    watch_games: boolean
+    send_messages: boolean
+    follow_bets: boolean
+  }
+  watcher_profile?: UserProfile
+  watched_profile?: UserProfile
+}
+
+export interface WatchRequest {
+  id: string
+  requester_id: string
+  target_id: string
+  status: 'pending' | 'accepted' | 'declined' | 'expired'
+  created_at: Date
+  responded_at?: Date
+  expires_at: Date
+  requester_profile?: UserProfile
+  target_profile?: UserProfile
+}
+
+export interface WatchSession {
+  id: string
+  watcher_id: string
+  watched_id: string
+  game_session_id: string
+  status: 'active' | 'ended'
+  created_at: Date
+  ended_at?: Date
+  watcher_profile?: UserProfile
+  watched_profile?: UserProfile
+  game_session?: GameSession
+}
+
 export interface UserAchievement {
   id: string
   user_id: string
@@ -137,6 +177,18 @@ export enum FriendStatus {
   BLOCKED = 'blocked'
 }
 
+export enum WatchRequestStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  DECLINED = 'declined',
+  EXPIRED = 'expired'
+}
+
+export enum WatchSessionStatus {
+  ACTIVE = 'active',
+  ENDED = 'ended'
+}
+
 export enum AchievementRarity {
   COMMON = 'common',
   RARE = 'rare',
@@ -168,7 +220,7 @@ export enum LeaderboardMetric {
 
 // WebSocket message types for social features
 export interface SocialWebSocketMessage {
-  type: 'friend_request' | 'friend_accept' | 'friend_block' | 'private_message' | 'achievement_unlock' | 'leaderboard_update' | 'social_betting_start' | 'social_betting_end' | 'user_online' | 'user_offline'
+  type: 'friend_request' | 'friend_accept' | 'friend_block' | 'private_message' | 'achievement_unlock' | 'leaderboard_update' | 'social_betting_start' | 'social_betting_end' | 'user_online' | 'user_offline' | 'watch_request' | 'watch_request_accept' | 'watch_request_decline' | 'watch_session_start' | 'watch_session_end'
   data: any
   timestamp: Date
 }
@@ -204,9 +256,26 @@ export interface SocialBettingResponse {
   total_watchers: number
 }
 
+export interface WatchRequestsResponse {
+  sent_requests: WatchRequest[]
+  received_requests: WatchRequest[]
+  active_watch_sessions: WatchSession[]
+  total_count: number
+}
+
 // Social feature form types
 export interface AddFriendForm {
   username: string
+}
+
+export interface SendWatchRequestForm {
+  target_id: string
+  game_session_id?: string
+}
+
+export interface RespondToWatchRequestForm {
+  request_id: string
+  action: 'accept' | 'decline'
 }
 
 export interface SendMessageForm {
@@ -225,7 +294,7 @@ export interface AchievementProgress {
 // Social feature notification types
 export interface SocialNotification {
   id: string
-  type: 'friend_request' | 'message_received' | 'achievement_unlocked' | 'friend_online' | 'friend_playing'
+  type: 'friend_request' | 'message_received' | 'achievement_unlocked' | 'friend_online' | 'friend_playing' | 'watch_request' | 'watch_request_accepted' | 'watch_request_declined' | 'watch_session_started'
   title: string
   message: string
   data?: any

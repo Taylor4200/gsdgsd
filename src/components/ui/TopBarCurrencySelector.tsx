@@ -45,9 +45,9 @@ const TopBarCurrencySelector: React.FC<TopBarCurrencySelectorProps> = ({
         <div className="flex items-center space-x-1 md:space-x-2">
           <div className="flex items-center space-x-1">
             {selectedCurrency === 'SC' ? (
-              <CurrencyDollarIcon className="h-3 w-3 md:h-4 md:w-4 text-[#00d4ff]" />
+              <CurrencyDollarIcon className="h-3 w-3 md:h-4 md:w-4 text-green-400" />
             ) : (
-              <Coins className="h-3 w-3 md:h-4 md:w-4 text-purple-400" />
+              <Coins className="h-3 w-3 md:h-4 md:w-4 text-yellow-400" />
             )}
             <span className="text-xs md:text-sm font-medium">{getBalanceDisplay()}</span>
           </div>
@@ -76,12 +76,12 @@ const TopBarCurrencySelector: React.FC<TopBarCurrencySelectorProps> = ({
                 }}
                 className={`w-full flex items-center justify-between px-2 md:px-3 py-2 rounded text-xs md:text-sm transition-colors ${
                   selectedCurrency === 'SC' 
-                    ? 'bg-[#00d4ff]/20 text-[#00d4ff]' 
+                    ? 'bg-green-500/20 text-green-400' 
                     : 'text-gray-300 hover:bg-white/5 hover:text-white'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <CurrencyDollarIcon className="h-3 w-3 md:h-4 md:w-4 text-[#00d4ff]" />
+                  <CurrencyDollarIcon className="h-3 w-3 md:h-4 md:w-4 text-green-400" />
                   <span className="hidden sm:block">Sweeps Coins</span>
                   <span className="sm:hidden">SC</span>
                 </div>
@@ -98,12 +98,12 @@ const TopBarCurrencySelector: React.FC<TopBarCurrencySelectorProps> = ({
                 }}
                 className={`w-full flex items-center justify-between px-2 md:px-3 py-2 rounded text-xs md:text-sm transition-colors ${
                   selectedCurrency === 'GC' 
-                    ? 'bg-purple-500/20 text-purple-400' 
+                    ? 'bg-yellow-500/20 text-yellow-400' 
                     : 'text-gray-300 hover:bg-white/5 hover:text-white'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Coins className="h-3 w-3 md:h-4 md:w-4 text-purple-400" />
+                  <Coins className="h-3 w-3 md:h-4 md:w-4 text-yellow-400" />
                   <span className="hidden sm:block">Gold Coins</span>
                   <span className="sm:hidden">GC</span>
                 </div>

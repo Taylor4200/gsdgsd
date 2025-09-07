@@ -136,7 +136,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </Link>
         
-        {/* Toggle Button */}
+        {/* Collapse Button - Only show on desktop when expanded */}
+        {!collapsed && !isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleToggleCollapse}
+            className="text-gray-400 hover:text-white hover:bg-white/10"
+            title="Collapse Sidebar"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Navigation */}

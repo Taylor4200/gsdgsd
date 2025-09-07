@@ -209,18 +209,18 @@ const MyBetsModal: React.FC<MyBetsModalProps> = ({ isOpen, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 pt-16 pb-20 sm:pt-4 sm:pb-4"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}
-          className="bg-[#1a2c38] rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden"
+          className="bg-[#1a2c38] rounded-lg w-full max-w-sm sm:max-w-6xl max-h-[calc(100vh-9rem)] sm:max-h-[90vh] overflow-hidden"
         >
           {/* Header */}
-          <div className="bg-[#2d3748] p-6 flex items-center justify-between">
+          <div className="bg-[#2d3748] p-3 sm:p-6 flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h2 className="text-2xl font-bold text-white">My Bets</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white">My Bets</h2>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"

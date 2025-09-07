@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Search,
   User,
@@ -17,12 +18,19 @@ import {
   History,
   TrendingUp,
   Users,
-  Zap
+  Zap,
+  Settings,
+  LogOut,
+  Shield,
+  Gift
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import NotificationsDropdown from '@/components/ui/NotificationsDropdown'
 import UserDropdown from '@/components/ui/UserDropdown'
 import TopBarCurrencySelector from '@/components/ui/TopBarCurrencySelector'
+import VaultModal from '@/components/modals/VaultModal'
+import RewardsModal from '@/components/modals/RewardsModal'
+import LiveSupportModal from '@/components/modals/LiveSupportModal'
 import { useUserStore } from '@/store/userStore'
 import { formatCurrency } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
@@ -33,7 +41,6 @@ interface TopBarProps {
   onToggleChat: () => void
   sidebarCollapsed: boolean
   chatOpen: boolean
-  mobileSidebarOpen?: boolean
   mobileChatOpen?: boolean
 }
 
@@ -42,13 +49,15 @@ const TopBar: React.FC<TopBarProps> = ({
   onToggleChat,
   sidebarCollapsed,
   chatOpen,
-  mobileSidebarOpen = false,
   mobileChatOpen = false
 }) => {
-  const { user, isAuthenticated, selectedCurrency, setSelectedCurrency } = useUserStore()
+  const { user, isAuthenticated, selectedCurrency, setSelectedCurrency, logout } = useUserStore()
   const { setSignupModal, setLoginModal, setWalletModal, setLiveStatsModal, setMyBetsModal } = useUIStore()
+  const router = useRouter()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showMobileUserMenu, setShowMobileUserMenu] = useState(false)
+  const [activeModal, setActiveModal] = useState<'vault' | 'rewards' | 'support' | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
   // Search functionality
@@ -171,17 +180,15 @@ const TopBar: React.FC<TopBarProps> = ({
       }}
     >
             <div className="flex items-center justify-between h-16 px-4 md:px-6">
-        {/* Left Section - Sidebar Controls */}
+        {/* Left Section - Mobile Logo + Sidebar Controls */}
         <div className="flex items-center space-x-2 md:space-x-4">
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleSidebar}
-            className="md:hidden"
-          >
-            {mobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          {/* Mobile Logo - Stake Style */}
+          <div className="md:hidden">
+            <Link href="/casino" className="flex items-center space-x-2">
+              <img src="/Logo11.png" alt="Edge Logo" className="h-6 w-6" />
+              <span className="text-lg font-bold text-white">EDGE</span>
+            </Link>
+          </div>
 
           {/* Desktop Sidebar Toggle Button - Only show when sidebar is collapsed */}
           {sidebarCollapsed && (
@@ -345,15 +352,166 @@ const TopBar: React.FC<TopBarProps> = ({
                 />
               </div>
 
-              {/* User Menu - Hidden on mobile */}
+              {/* User Menu - Desktop */}
               <div className="hidden md:block">
-                <UserDropdown 
-                  isOpen={showUserMenu}
-                  onToggle={() => setShowUserMenu(!showUserMenu)}
-                />
+                {user && user.username ? (
+                  <UserDropdown 
+                    isOpen={showUserMenu}
+                    onToggle={() => setShowUserMenu(!showUserMenu)}
+                  />
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setLoginModal(true)}
+                    className="text-white hover:bg-white/10"
+                  >
+                    Login
+                  </Button>
+                )}
+              </div>
+
+              {/* Mobile Profile Button */}
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowMobileUserMenu(!showMobileUserMenu)}
+                  className="flex items-center justify-center w-8 h-8 p-0 text-white hover:bg-white/10"
+                >
+                  <div className="relative">
+                    <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <User className="h-3 w-3 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-black">{user?.level || 1}</span>
+                    </div>
+                  </div>
+                </Button>
               </div>
             </>
           ) : null}
+
+          {/* Mobile Profile Modal */}
+          {showMobileUserMenu && (
+            <div className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-[#1a2c38] rounded-lg border border-[#2d3748] w-full max-w-sm p-4"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white font-medium">{user?.username || 'Guest'}</div>
+                      <div className="text-sm text-gray-400">Level {user?.level || 1}</div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowMobileUserMenu(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Menu Items */}
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-white hover:bg-white/10"
+                    onClick={() => {
+                      setActiveModal('vault')
+                      setShowMobileUserMenu(false)
+                    }}
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium">Vault</div>
+                      <div className="text-xs text-gray-400">Secure storage for your funds</div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-white hover:bg-white/10"
+                    onClick={() => {
+                      setMyBetsModal(true)
+                      setShowMobileUserMenu(false)
+                    }}
+                  >
+                    <History className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium">Bet History</div>
+                      <div className="text-xs text-gray-400">View your betting activity</div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-green-400 hover:bg-green-500/10"
+                    onClick={() => {
+                      setActiveModal('rewards')
+                      setShowMobileUserMenu(false)
+                    }}
+                  >
+                    <Gift className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium text-green-400">Rewards</div>
+                      <div className="text-xs text-gray-400">Daily rewards & rakeback</div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-white hover:bg-white/10"
+                    onClick={() => {
+                      setActiveModal('support')
+                      setShowMobileUserMenu(false)
+                    }}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium">Live Support</div>
+                      <div className="text-xs text-gray-400">Get help from our team</div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-white hover:bg-white/10"
+                    onClick={() => {
+                      router.push('/settings')
+                      setShowMobileUserMenu(false)
+                    }}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium">Settings</div>
+                      <div className="text-xs text-gray-400">Account preferences</div>
+                    </div>
+                  </Button>
+                  <div className="border-t border-gray-600 my-2"></div>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-red-400 hover:bg-red-500/10"
+                    onClick={async () => {
+                      await logout()
+                      setShowMobileUserMenu(false)
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium text-red-400">Logout</div>
+                      <div className="text-xs text-gray-400">Sign out of your account</div>
+                    </div>
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          )}
 
           {/* Chat Toggle */}
           <Button
@@ -383,6 +541,11 @@ const TopBar: React.FC<TopBarProps> = ({
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <VaultModal isOpen={activeModal === 'vault'} onClose={() => setActiveModal(null)} />
+      <RewardsModal isOpen={activeModal === 'rewards'} onClose={() => setActiveModal(null)} />
+      <LiveSupportModal isOpen={activeModal === 'support'} onClose={() => setActiveModal(null)} />
     </div>
   )
 }

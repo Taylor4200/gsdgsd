@@ -13,7 +13,11 @@ import {
   CheckCheck,
   Eye,
   EyeOff,
-  ArrowLeft
+  ArrowLeft,
+  UserPlus,
+  Gamepad2,
+  TrendingUp,
+  Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -81,6 +85,44 @@ const PrivateMessages: React.FC<PrivateMessagesProps> = ({ onSelectConversation 
     }
   }
 
+  // Social action handlers
+  const handleSendWatchRequest = async (userId: string) => {
+    try {
+      const response = await fetch('/api/watch-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send',
+          targetId: userId,
+          userId: useUserStore.getState().user?.id
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Watch request sent:', data.message)
+        // You could show a toast notification here
+      } else {
+        const error = await response.json()
+        console.error('Failed to send watch request:', error.error)
+      }
+    } catch (error) {
+      console.error('Error sending watch request:', error)
+    }
+  }
+
+  const handleFollowBets = (userId: string) => {
+    // This would integrate with the betting system to follow their bets
+    console.log('Following bets for user:', userId)
+    // You could show a modal or navigate to betting interface
+  }
+
+  const handleViewProfile = (profile: any) => {
+    // This would open the user profile modal
+    console.log('Viewing profile for:', profile.username)
+    // You could trigger a profile modal or navigate to profile page
+  }
+
   // If a conversation is selected, show the chat view
   if (selectedConversation && currentConversation) {
     return (
@@ -124,11 +166,42 @@ const PrivateMessages: React.FC<PrivateMessagesProps> = ({ onSelectConversation 
                 {currentConversation.other_user_profile.is_online ? ' Online' : ' Offline'}
               </p>
             </div>
+
+            {/* Quick Actions */}
+            <div className="flex items-center space-x-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-gray-400 hover:text-[#00d4ff] hover:bg-[#00d4ff]/10"
+                title="Send Watch Request"
+                onClick={() => handleSendWatchRequest(currentConversation.other_user_id)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-gray-400 hover:text-green-400 hover:bg-green-400/10"
+                title="Follow Their Bets"
+                onClick={() => handleFollowBets(currentConversation.other_user_id)}
+              >
+                <TrendingUp className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-gray-400 hover:text-purple-400 hover:bg-purple-400/10"
+                title="View Profile"
+                onClick={() => handleViewProfile(currentConversation.other_user_profile)}
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        <div className="flex-1 p-3 space-y-2 overflow-hidden">
           {currentMessages.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
               <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -155,7 +228,7 @@ const PrivateMessages: React.FC<PrivateMessagesProps> = ({ onSelectConversation 
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="flex-1 bg-[#2d3748] border-[#374151] text-white placeholder-gray-400 text-sm"
+              className="flex-1 bg-[#1a2332] border-[#2d3748] text-white placeholder-gray-400 text-sm"
               disabled={isSending}
               maxLength={500}
             />
@@ -198,12 +271,12 @@ const PrivateMessages: React.FC<PrivateMessagesProps> = ({ onSelectConversation 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           icon={<Search className="h-3 w-3" />}
-          className="bg-[#2d3748] border-[#374151] text-sm"
+          className="bg-[#1a2332] border-[#2d3748] text-sm"
         />
       </div>
 
       {/* Conversations */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden">
         {filteredConversations.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -237,10 +310,27 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation, isSel
   const profile = conversation.other_user_profile
   const lastMessage = conversation.last_message
 
+  const handleQuickAction = (e: React.MouseEvent, action: string) => {
+    e.stopPropagation()
+    
+    switch (action) {
+      case 'watch':
+        // Send watch request
+        console.log('Send watch request to:', profile.username)
+        break
+      case 'message':
+        onClick()
+        break
+      case 'profile':
+        console.log('View profile:', profile.username)
+        break
+    }
+  }
+
   return (
     <motion.div
       whileHover={{ scale: 1.01 }}
-      className={`p-2 rounded-lg cursor-pointer transition-all duration-200 ${
+      className={`p-2 rounded-lg cursor-pointer transition-all duration-200 group ${
         isSelected 
           ? 'bg-[#00d4ff]/20 border border-[#00d4ff]/50' 
           : 'bg-[#1a2c38] hover:bg-[#2a3c48] border border-transparent'
@@ -266,11 +356,34 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation, isSel
             <h4 className="text-white font-medium text-sm truncate">
               {profile.username}
             </h4>
-            {conversation.unread_count > 0 && (
-              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
-                {conversation.unread_count}
-              </span>
-            )}
+            <div className="flex items-center space-x-1">
+              {conversation.unread_count > 0 && (
+                <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                  {conversation.unread_count}
+                </span>
+              )}
+              {/* Quick Actions - only show on hover */}
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 text-gray-400 hover:text-[#00d4ff]"
+                  onClick={(e) => handleQuickAction(e, 'watch')}
+                  title="Send Watch Request"
+                >
+                  <Eye className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 text-gray-400 hover:text-green-400"
+                  onClick={(e) => handleQuickAction(e, 'profile')}
+                  title="View Profile"
+                >
+                  <UserPlus className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
           </div>
           
           {lastMessage && (

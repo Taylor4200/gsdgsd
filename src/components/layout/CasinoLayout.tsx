@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from './Sidebar'
 import ChatSidebar from './ChatSidebar'
 import TopBar from './TopBar'
+import MobileBottomNav from './MobileBottomNav'
 import LegalFooter from './LegalFooter'
 import WalletModal from '@/components/modals/WalletModal'
 import SignupModal from '@/components/modals/SignupModal'
@@ -25,12 +26,12 @@ import { useUserStore } from '@/store/userStore'
 
 interface CasinoLayoutProps {
   children: React.ReactNode
+  theatreMode?: boolean
 }
 
-const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
+const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children, theatreMode = false }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [chatOpen, setChatOpen] = useState(false) // Default closed on mobile
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [mobileChatOpen, setMobileChatOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [showEmailVerification, setShowEmailVerification] = useState(false)
@@ -97,8 +98,8 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
 
   const handleToggleSidebar = () => {
     if (isMobile) {
-      setMobileSidebarOpen(!mobileSidebarOpen)
-      setMobileChatOpen(false) // Close chat when opening sidebar
+      // Mobile sidebar removed - functionality moved to bottom nav
+      return
     } else {
       setSidebarCollapsed(!sidebarCollapsed)
     }
@@ -107,7 +108,6 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
   const handleToggleChat = () => {
     if (isMobile) {
       setMobileChatOpen(!mobileChatOpen)
-      setMobileSidebarOpen(false) // Close sidebar when opening chat
     } else {
       setChatOpen(!chatOpen)
     }
@@ -115,18 +115,15 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-[#0f1419] text-white overflow-hidden">
-      {/* Mobile Overlay */}
+      {/* Mobile Chat Overlay - Only show backdrop when chat is open */}
       <AnimatePresence>
-        {(mobileSidebarOpen || mobileChatOpen) && (
+        {mobileChatOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => {
-              setMobileSidebarOpen(false)
-              setMobileChatOpen(false)
-            }}
+            className="fixed inset-0 bg-black/30 z-40 md:hidden"
+            onClick={() => setMobileChatOpen(false)}
           />
         )}
       </AnimatePresence>
@@ -143,39 +140,6 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
         />
       </div>
 
-      {/* Left Sidebar - Mobile */}
-      <AnimatePresence>
-        {mobileSidebarOpen && (
-          <motion.div
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            className="fixed left-0 top-0 h-full w-70 bg-dark-200 border-r border-white/10 z-50 md:hidden"
-          >
-            <Sidebar 
-              collapsed={false}
-              onCollapse={() => setMobileSidebarOpen(false)}
-              isMobile={true}
-              onOpenFriends={() => {
-                setFriendsModalOpen(true)
-                setMobileSidebarOpen(false)
-              }}
-              onOpenLeaderboards={() => {
-                setLeaderboardsModalOpen(true)
-                setMobileSidebarOpen(false)
-              }}
-              onOpenAchievements={() => {
-                setAchievementsModalOpen(true)
-                setMobileSidebarOpen(false)
-              }}
-              onOpenSocialBetting={() => {
-                setSocialBettingModalOpen(true)
-                setMobileSidebarOpen(false)
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Right Chat Sidebar - Desktop */}
       <div className="hidden md:block">
@@ -194,7 +158,7 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
             initial={{ x: 320 }}
             animate={{ x: 0 }}
             exit={{ x: 320 }}
-            className="fixed right-0 top-0 h-full w-80 bg-dark-200 border-l border-white/10 z-50 md:hidden"
+            className="fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 bg-[#0f1419] border-l border-[#1a2332] z-50 md:hidden"
           >
             <ChatSidebar
               isOpen={true}
@@ -213,7 +177,6 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
         onToggleChat={handleToggleChat}
         sidebarCollapsed={sidebarCollapsed}
         chatOpen={chatOpen}
-        mobileSidebarOpen={mobileSidebarOpen}
         mobileChatOpen={mobileChatOpen}
       />
 
@@ -222,19 +185,29 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children }) => {
         className="transition-all duration-300 pt-16 md:pt-16"
         style={{
           marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 240),
-          marginRight: isMobile ? 0 : (chatOpen ? 320 : 0),
+          marginRight: isMobile ? (mobileChatOpen ? 320 : 0) : (chatOpen ? 320 : 0),
         }}
       >
         <div className="min-h-screen flex flex-col">
-          <div className="flex-1 px-4 md:px-6">
+          <div className={`flex-1 px-4 md:px-6 ${isMobile ? 'pb-20' : ''}`}>
             {children}
           </div>
-          <div className="px-4 md:px-6 pb-4">
+          <div className={`px-4 md:px-6 pt-12 pb-4 ${isMobile ? 'pb-24' : ''}`}>
             <LiveFeed />
           </div>
           <LegalFooter />
         </div>
       </motion.main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        onOpenFriends={() => setFriendsModalOpen(true)}
+        onOpenLeaderboards={() => setLeaderboardsModalOpen(true)}
+        onOpenAchievements={() => setAchievementsModalOpen(true)}
+        onOpenSocialBetting={() => setSocialBettingModalOpen(true)}
+        onToggleChat={() => setMobileChatOpen(!mobileChatOpen)}
+        chatOpen={mobileChatOpen}
+      />
 
       {/* Global Modals */}
       <WalletModal

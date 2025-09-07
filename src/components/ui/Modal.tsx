@@ -28,11 +28,11 @@ const Modal: React.FC<ModalProps> = ({
   closeOnOverlayClick = true,
 }) => {
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-7xl'
+    sm: 'max-w-md sm:max-w-md',
+    md: 'max-w-sm sm:max-w-lg',
+    lg: 'max-w-sm sm:max-w-2xl',
+    xl: 'max-w-sm sm:max-w-4xl',
+    full: 'max-w-sm sm:max-w-7xl'
   }
 
   const variantClasses = {
@@ -44,7 +44,7 @@ const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pt-16 pb-20 sm:pt-4 sm:pb-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -61,7 +61,7 @@ const Modal: React.FC<ModalProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'relative w-full rounded-xl p-6 shadow-2xl',
+              'relative w-full rounded-xl p-3 sm:p-6 shadow-2xl max-h-[calc(100vh-9rem)] sm:max-h-[90vh] overflow-y-auto',
               sizeClasses[size],
               variantClasses[variant]
             )}
@@ -69,10 +69,10 @@ const Modal: React.FC<ModalProps> = ({
           >
             {/* Header */}
             {(title || showCloseButton) && (
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <div>
                   {title && (
-                    <h2 className="text-2xl font-bold text-white font-futuristic">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white font-futuristic">
                       {title}
                     </h2>
                   )}
