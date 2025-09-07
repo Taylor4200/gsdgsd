@@ -282,9 +282,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   const tabs = [
     { id: 'chat', name: 'Chat', icon: MessageCircle, badge: onlineCount },
     { id: 'friends', name: 'Friends', icon: Users },
-    { id: 'messages', name: 'Messages', icon: MessageCircle, badge: unreadMessages },
-    { id: 'leaderboards', name: 'Leaderboards', icon: Crown },
-    { id: 'social', name: 'Social', icon: Eye }
+    { id: 'messages', name: 'Messages', icon: MessageCircle, badge: unreadMessages }
   ]
 
   const renderTabContent = () => {
@@ -325,7 +323,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
             )}
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 p-4 space-y-3 overflow-y-auto scrollbar-hide">
               <AnimatePresence>
                 {messages.map((msg) => (
                   <motion.div
@@ -444,7 +442,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                   placeholder={wsConnected ? "Type a message..." : "Connecting..."}
                   disabled={!wsConnected}
                   maxLength={500}
-                  className="flex-1 bg-[#2d3748] border-[#374151] text-white placeholder-gray-400"
+                  className="flex-1 bg-[#1a2332] border-[#2d3748] text-white placeholder-gray-400"
                 />
                 <Button
                   onClick={handleSendMessage}
@@ -465,10 +463,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
         return <FriendsListCompact />
       case 'messages':
         return <PrivateMessages />
-      case 'leaderboards':
-        return <Leaderboards />
-      case 'social':
-        return <SocialBetting />
       default:
         return null
     }
@@ -482,7 +476,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
       animate={{ x: 0 }}
       exit={{ x: collapsed ? 0 : 400 }}
       className={cn(
-        "fixed right-0 top-0 h-full bg-[#1a2c38] border-l border-gray-700 z-40 flex flex-col",
+        "fixed right-0 top-0 h-full bg-[#0f1419] border-l border-[#1a2332] z-[60] flex flex-col shadow-2xl",
         collapsed ? "w-16" : "w-80",
         isMobile ? "w-full" : ""
       )}
@@ -537,7 +531,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col overflow-hidden">
             {renderTabContent()}
           </div>
         </>
