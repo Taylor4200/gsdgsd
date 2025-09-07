@@ -9,8 +9,6 @@ import GameCard from '@/components/ui/GameCard'
 import { games, getGamesByCategory, searchGames, getFeaturedGames, getOriginalsGames, getHotGames } from '@/lib/gameData'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import DailyBonusClaim from './DailyBonusClaim'
-import RakebackClaim from './RakebackClaim'
 import RewardsSection from './RewardsSection'
 
 interface Raffle {
