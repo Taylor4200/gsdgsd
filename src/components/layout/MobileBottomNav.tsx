@@ -8,7 +8,6 @@ import {
   Dice1,
   Coins,
   Trophy,
-  MessageCircle,
   Search,
   Star,
   Gift,
@@ -32,17 +31,13 @@ interface MobileBottomNavProps {
   onOpenLeaderboards?: () => void
   onOpenAchievements?: () => void
   onOpenSocialBetting?: () => void
-  onToggleChat?: () => void
-  chatOpen?: boolean
 }
 
 const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenFriends,
   onOpenLeaderboards,
   onOpenAchievements,
-  onOpenSocialBetting,
-  onToggleChat,
-  chatOpen = false
+  onOpenSocialBetting
 }) => {
   const pathname = usePathname()
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
@@ -62,14 +57,6 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       active: pathname === '/casino' || pathname.startsWith('/casino/game') || pathname.startsWith('/live') || pathname.startsWith('/originals'),
       count: 35419,
       hasSubmenu: true
-    },
-    {
-      name: 'Chat',
-      href: '#',
-      icon: MessageCircle,
-      active: chatOpen,
-      onClick: onToggleChat,
-      hasSubmenu: false
     },
     {
       name: 'VIP',
@@ -212,9 +199,9 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           const Icon = item.icon
           return (
             <div key={item.name} className="flex flex-col items-center">
-              {item.onClick ? (
+              {(item as any).onClick ? (
                 <button
-                  onClick={item.onClick}
+                  onClick={(item as any).onClick}
                   className={cn(
                     "flex flex-col items-center space-y-1 px-2 py-1 rounded-lg transition-colors",
                     item.active 

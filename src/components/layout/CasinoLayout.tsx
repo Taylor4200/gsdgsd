@@ -205,8 +205,6 @@ const CasinoLayout: React.FC<CasinoLayoutProps> = ({ children, theatreMode = fal
         onOpenLeaderboards={() => setLeaderboardsModalOpen(true)}
         onOpenAchievements={() => setAchievementsModalOpen(true)}
         onOpenSocialBetting={() => setSocialBettingModalOpen(true)}
-        onToggleChat={() => setMobileChatOpen(!mobileChatOpen)}
-        chatOpen={mobileChatOpen}
       />
 
       {/* Global Modals */}
