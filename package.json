@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "vercel-build": "next build",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "websocket": "node websocket-server.js",
-    "dev:full": "concurrently \"npm run dev\" \"npm run websocket\""
+    "websocket-efficient": "node websocket-server-efficient.js",
+    "dev:full": "concurrently \"npm run dev\" \"npm run websocket-efficient\""
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

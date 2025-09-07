@@ -1,0 +1,19 @@
+# Production Environment Variables for Vercel
+# Add these to your Vercel dashboard under Settings > Environment Variables
+
+# Database
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Pusher (for critical events only)
+NEXT_PUBLIC_PUSHER_KEY=your_pusher_key
+PUSHER_APP_ID=your_pusher_app_id
+PUSHER_SECRET=your_pusher_secret
+NEXT_PUBLIC_PUSHER_CLUSTER=your_cluster
+
+# NextAuth
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=https://your-domain.vercel.app
+
+# Optional: Redis for caching (if you want to scale beyond 100k users)
+# REDIS_URL=your_redis_url

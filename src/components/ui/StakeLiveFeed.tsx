@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatTime } from '@/lib/utils'
 import { useUserStore } from '@/store/userStore'
-import { useLiveFeedWebSocket } from '@/hooks/usePusher'
+import { useEfficientLiveFeed } from '@/hooks/useEfficientRealtime'
 
 interface LiveBet {
   id: string
@@ -42,28 +42,31 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ className = '' }) => {
   const [bets, setBets] = useState<LiveBet[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Pusher connection for live feed
-  const { isConnected, connectionState, sendMessage } = useLiveFeedWebSocket((event, data) => {
-    if (event === 'live-feed-event' && data) {
-      // Add new event to the top of the list
-      const newBet: LiveBet = {
-        id: data.id || Date.now().toString(),
-        user_id: data.user_id,
-        username: data.username,
-        game_id: data.game_id,
-        game_name: data.game_name,
-        bet_amount: data.bet_amount,
-        win_amount: data.win_amount,
-        multiplier: data.multiplier,
-        result: data.win_amount > 0 ? 'win' : 'loss',
+  // Efficient live feed with polling (no persistent connections!)
+  const { data: liveFeedData, isConnected, error } = useEfficientLiveFeed(true)
+
+  // Update bets from efficient polling data
+  useEffect(() => {
+    if (liveFeedData?.liveFeed) {
+      const transformedBets = liveFeedData.liveFeed.map((event: any) => ({
+        id: event.id,
+        user_id: event.user_id,
+        username: event.username,
+        game_id: event.game_id,
+        game_name: event.game_name,
+        bet_amount: event.bet_amount,
+        win_amount: event.win_amount,
+        multiplier: event.multiplier,
+        result: event.win_amount > 0 ? 'win' : 'loss',
         currency: 'SC' as const,
-        created_at: data.created_at || new Date().toISOString(),
-        is_featured: data.is_featured
-      }
+        created_at: event.created_at,
+        is_featured: event.is_featured
+      }))
       
-      setBets(prev => [newBet, ...prev.slice(0, 9)]) // Keep last 10 bets
+      setBets(transformedBets.slice(0, 20)) // Keep last 20 bets
+      setLoading(false)
     }
-  })
+  }, [liveFeedData])
 
   // Fetch initial data and setup polling as fallback
   const fetchBets = async () => {

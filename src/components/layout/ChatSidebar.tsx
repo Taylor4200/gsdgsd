@@ -29,7 +29,7 @@ import { useUserStore } from '@/store/userStore'
 import type { ChatMessage } from '@/lib/chatService'
 import UserProfileModal from '@/components/chat/UserProfileModal'
 import BanModal from '@/components/modals/BanModal'
-import { useChatWebSocket } from '@/hooks/usePusher'
+import { useVercelChat } from '@/hooks/useVercelChat'
 
 // Import social components
 import FriendsListCompact from '@/components/social/FriendsListCompact'
@@ -64,26 +64,28 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
   const [banTarget, setBanTarget] = useState<{userId: string, username: string} | null>(null)
   const [timeoutNotification, setTimeoutNotification] = useState<{message: string, type: 'timeout'} | null>(null)
 
-  // Pusher connection for real-time chat
-  const { isConnected: wsConnected, sendMessage } = useChatWebSocket((event, data) => {
-    if (event === 'chat-message' && data) {
-      setMessages(prev => [...prev, data])
+  // Vercel-compatible instant chat (1-second polling)
+  const { 
+    messages: wsMessages, 
+    onlineUsers, 
+    isConnected: wsConnected, 
+    sendMessage: sendChatMessage 
+  } = useVercelChat(user?.id, user?.username)
+
+  // Update messages from Vercel polling
+  useEffect(() => {
+    if (wsMessages && wsMessages.length > 0) {
+      setMessages(wsMessages)
       scrollToBottom()
-    } else if (event === 'online-count-update' && data) {
-      setOnlineCount(data.count)
-    } else if (event === 'presence-update' && data) {
-      console.log('Presence update:', data)
-    } else if (event === 'friend-request' && data) {
-      // Handle friend request notification
-      console.log('Friend request received:', data)
-    } else if (event === 'private-message' && data) {
-      // Handle private message notification
-      console.log('Private message received:', data)
-    } else if (event === 'achievement-unlock' && data) {
-      // Handle achievement unlock notification
-      console.log('Achievement unlocked:', data)
     }
-  })
+  }, [wsMessages])
+
+  // Update online count from polling
+  useEffect(() => {
+    if (onlineUsers) {
+      setOnlineCount(onlineUsers.length)
+    }
+  }, [onlineUsers])
 
   // Initialize chat when user is available
   useEffect(() => {
@@ -141,6 +143,33 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
     }
   }, [user])
 
+  // Remove messages older than 1 hour for visual display (keeps logs for mods)
+  useEffect(() => {
+    const removeOldMessages = () => {
+      const now = new Date()
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
+      
+      // Filter out messages older than 1 hour
+      setMessages(prev => {
+        const filtered = prev.filter(msg => {
+          const messageTime = new Date(msg.timestamp)
+          return messageTime > oneHourAgo
+        })
+        
+        // Only update if there were actually old messages to remove
+        if (filtered.length !== prev.length) {
+          return filtered
+        }
+        return prev
+      })
+    }
+
+    // Check for old messages every 5 minutes
+    const interval = setInterval(removeOldMessages, 5 * 60 * 1000) // Every 5 minutes
+
+    return () => clearInterval(interval)
+  }, [])
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -155,31 +184,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
     const messageText = newMessage.trim()
     setNewMessage('')
 
-    try {
-      const response = await fetch('/api/chat-new', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: messageText, 
-          userId: user.id, 
-          username: user.username || 'Anonymous' 
-        })
-      })
-
-      const result = await response.json()
-      
-      if (!response.ok || result.error) {
-        setError('Failed to send message')
-        setNewMessage(messageText)
-      } else if (result.message) {
-        setMessages(prev => [...prev, result.message])
-      }
-    } catch (error) {
-      console.error('Error sending message:', error)
+    // Send via Vercel API (instant!)
+    const success = await sendChatMessage(messageText)
+    if (!success) {
       setError('Failed to send message')
       setNewMessage(messageText)
     }
-  }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -333,8 +343,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, collapsed =
                     exit={{ opacity: 0, y: -10 }}
                     className={cn(
                       "flex items-start space-x-2 group p-2 rounded-lg transition-colors",
-                      msg.message_type === 'system' 
-                        ? "bg-yellow-500/10 border border-yellow-500/20" 
+                      msg.is_system 
+                        ? "bg-blue-500/10 border border-blue-500/20" 
                         : "hover:bg-gray-800/50"
                     )}
                   >
