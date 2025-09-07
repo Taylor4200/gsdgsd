@@ -44,14 +44,42 @@ const CasinoHome: React.FC = () => {
   const [raffle, setRaffle] = useState<Raffle | null>(null)
   const [timeLeft, setTimeLeft] = useState('')
   const [recentWins, setRecentWins] = useState<RecentWin[]>([])
+  const [recentlyPlayedGames, setRecentlyPlayedGames] = useState<any[]>([])
   const [isPopoutOpen, setIsPopoutOpen] = useState(false)
   const [popoutGame, setPopoutGame] = useState<any>(null)
   const [popoutPosition, setPopoutPosition] = useState({ x: 100, y: 100 })
   const router = useRouter()
 
   const handlePopoutGame = (game: any) => {
+    trackRecentlyPlayed(game.id)
     setPopoutGame(game)
     setIsPopoutOpen(true)
+  }
+
+  // Track recently played games
+  const trackRecentlyPlayed = (gameId: string) => {
+    try {
+      const stored = localStorage.getItem('recentlyPlayedGames')
+      let recentGames = stored ? JSON.parse(stored) : []
+      
+      // Remove if already exists to avoid duplicates
+      recentGames = recentGames.filter((id: string) => id !== gameId)
+      
+      // Add to beginning and limit to 20
+      recentGames = [gameId, ...recentGames].slice(0, 20)
+      
+      localStorage.setItem('recentlyPlayedGames', JSON.stringify(recentGames))
+      
+      // Update state
+      const validGames = recentGames
+        .filter((id: string) => games.find(g => g.id === id))
+        .map((id: string) => games.find(g => g.id === id))
+        .filter(Boolean)
+      
+      setRecentlyPlayedGames(validGames)
+    } catch (error) {
+      console.error('Error tracking recently played game:', error)
+    }
   }
 
   // Scroll functions for tabs
@@ -106,16 +134,47 @@ const CasinoHome: React.FC = () => {
     }
   }, [])
 
+  // Load recently played games from localStorage
+  useEffect(() => {
+    const loadRecentlyPlayed = () => {
+      try {
+        const stored = localStorage.getItem('recentlyPlayedGames')
+        if (stored) {
+          const recentGames = JSON.parse(stored)
+          // Filter out games that might not exist anymore and limit to last 20
+          const validGames = recentGames
+            .filter((gameId: string) => games.find(g => g.id === gameId))
+            .slice(0, 20)
+            .map((gameId: string) => games.find(g => g.id === gameId))
+            .filter(Boolean)
+          
+          setRecentlyPlayedGames(validGames)
+        }
+      } catch (error) {
+        console.error('Error loading recently played games:', error)
+      }
+    }
+
+    loadRecentlyPlayed()
+  }, [])
+
   const gameTabs = [
     { id: 'lobby', name: 'Lobby', count: games.length },
     { id: 'originals', name: 'Originals', count: getOriginalsGames().length },
     { id: 'slots', name: 'Slots', count: getGamesByCategory('slots').length },
     { id: 'live', name: 'Live Casino', count: getGamesByCategory('live').length },
     { id: 'table', name: 'Table Games', count: getGamesByCategory('table').length },
+    { id: 'recent', name: 'Recently Played', count: recentlyPlayedGames.length },
   ]
 
   // Define game sections for Lobby tab (like Shuffle)
   const gameSections = [
+    // Recently Played section - only show if user has recent games
+    ...(recentlyPlayedGames.length > 0 ? [{
+      id: 'recently-played',
+      name: 'Recently Played',
+      games: recentlyPlayedGames.slice(0, 8),
+    }] : []),
     {
       id: 'featured',
       name: 'Featured Games',
@@ -234,6 +293,8 @@ const CasinoHome: React.FC = () => {
         return getGamesByCategory('live')
       case 'table':
         return getGamesByCategory('table')
+      case 'recent':
+        return recentlyPlayedGames
       default:
         return getFeaturedGames()
     }
@@ -695,6 +756,14 @@ const CasinoHome: React.FC = () => {
                           game={game} 
                           variant="compact"
                           onPopout={handlePopoutGame}
+                          onClick={() => {
+                            trackRecentlyPlayed(game.id)
+                            router.push(`/casino/game/${game.id}`)
+                          }}
+                          onPlay={(game) => {
+                            trackRecentlyPlayed(game.id)
+                            router.push(`/casino/game/${game.id}`)
+                          }}
                         />
                       </motion.div>
                     ))}
@@ -705,36 +774,61 @@ const CasinoHome: React.FC = () => {
           ) : (
             /* Individual Category View - Single Grid */
             <div>
-              {/* Games Grid - Compact for better visibility */}
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                {currentGames.map((game, index) => (
-                  <motion.div
-                    key={game.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="group"
+              {/* Special case for Recently Played with no games */}
+              {activeTab === 'recent' && recentlyPlayedGames.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 text-lg mb-4">No recently played games</div>
+                  <p className="text-gray-500 mb-6">Start playing games to see them here!</p>
+                  <Button
+                    variant="default"
+                    onClick={() => setActiveTab('lobby')}
+                    className="bg-[#00d4ff] hover:bg-[#00d4ff]/90 text-black font-bold"
                   >
-                    <GameCard 
-                      game={game} 
-                      variant="compact"
-                      onPopout={handlePopoutGame}
-                    />
-                  </motion.div>
-                ))}
-              </div>
+                    Browse Games
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Games Grid - Compact for better visibility */}
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                    {currentGames.map((game, index) => (
+                      <motion.div
+                        key={game.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.03 }}
+                        className="group"
+                      >
+                        <GameCard 
+                          game={game} 
+                          variant="compact"
+                          onPopout={handlePopoutGame}
+                          onClick={() => {
+                            trackRecentlyPlayed(game.id)
+                            router.push(`/casino/game/${game.id}`)
+                          }}
+                          onPlay={(game) => {
+                            trackRecentlyPlayed(game.id)
+                            router.push(`/casino/game/${game.id}`)
+                          }}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
 
-              {/* View All Button */}
-              <div className="text-center mt-6">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push('/casino')}
-                  className="border-[#4a5568] text-gray-300 hover:border-[#00d4ff] hover:text-white"
-                >
-                  View All Games
-                </Button>
-              </div>
+                  {/* View All Button */}
+                  <div className="text-center mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push('/casino')}
+                      className="border-[#4a5568] text-gray-300 hover:border-[#00d4ff] hover:text-white"
+                    >
+                      View All Games
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </motion.div>

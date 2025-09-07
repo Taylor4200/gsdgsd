@@ -43,6 +43,24 @@ const GamePage: React.FC = () => {
   useEffect(() => {
     const foundGame = games.find(g => g.id === gameId)
     setGame(foundGame || null)
+    
+    // Track game visit for recently played
+    if (foundGame) {
+      try {
+        const stored = localStorage.getItem('recentlyPlayedGames')
+        let recentGames = stored ? JSON.parse(stored) : []
+        
+        // Remove if already exists to avoid duplicates
+        recentGames = recentGames.filter((id: string) => id !== gameId)
+        
+        // Add to beginning and limit to 20
+        recentGames = [gameId, ...recentGames].slice(0, 20)
+        
+        localStorage.setItem('recentlyPlayedGames', JSON.stringify(recentGames))
+      } catch (error) {
+        console.error('Error tracking recently played game:', error)
+      }
+    }
   }, [gameId])
 
   // Sync game currency with top bar currency
@@ -213,7 +231,27 @@ const GamePage: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsPopoutOpen(true)}
+                onClick={() => {
+                  // Track game for recently played
+                  try {
+                    const stored = localStorage.getItem('recentlyPlayedGames')
+                    let recentGames = stored ? JSON.parse(stored) : []
+                    
+                    // Remove if already exists to avoid duplicates
+                    recentGames = recentGames.filter((id: string) => id !== gameId)
+                    
+                    // Add to beginning and limit to 20
+                    recentGames = [gameId, ...recentGames].slice(0, 20)
+                    
+                    localStorage.setItem('recentlyPlayedGames', JSON.stringify(recentGames))
+                  } catch (error) {
+                    console.error('Error tracking recently played game:', error)
+                  }
+                  
+                  // Open popout and navigate back to home
+                  setIsPopoutOpen(true)
+                  window.location.href = '/'
+                }}
                 className="text-gray-300 hover:text-white"
                 title="Popout Game"
               >
