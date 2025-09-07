@@ -414,6 +414,18 @@ const CasinoHome: React.FC = () => {
                           )}
                         </div>
 
+                        {/* Enter Raffle Button - Moved up for better visibility */}
+                        <div className="flex justify-center mb-4">
+                          <Button
+                            variant="default"
+                            className="bg-gradient-to-r from-[#00d4ff] to-[#0099cc] hover:from-[#00d4ff]/90 hover:to-[#0099cc]/90 text-black font-bold px-10 py-4 text-xl shadow-lg shadow-[#00d4ff]/30 transform hover:scale-105 transition-all duration-200"
+                            onClick={handleEnterRaffle}
+                            disabled={!raffle}
+                          >
+                            Enter Weekly Raffle
+                          </Button>
+                        </div>
+
                         {/* Prize Distribution Summary */}
                         <div className="bg-black/20 rounded-lg p-3 mb-4 border border-[#00d4ff]/20">
                           <div className="text-center">
@@ -427,17 +439,6 @@ const CasinoHome: React.FC = () => {
                               )}
                             </div>
                           </div>
-                        </div>
-
-                        <div className="flex justify-center mt-9">
-                        <Button
-                          variant="default"
-                          className="bg-gradient-to-r from-[#00d4ff] to-[#0099cc] hover:from-[#00d4ff]/90 hover:to-[#0099cc]/90 text-black font-bold px-10 py-4 text-xl shadow-lg shadow-[#00d4ff]/30 transform hover:scale-105 transition-all duration-200"
-                          onClick={handleEnterRaffle}
-                          disabled={!raffle}
-                        >
-                          Enter Weekly Raffle
-                        </Button>
                         </div>
                       </div>
 
